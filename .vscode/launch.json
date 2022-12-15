@@ -2,11 +2,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Run",
+			"name": "Debug TableDevice",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/${fileBasenameNoExtension}",
-			"args": ["-batch-silent"],
+			"program": "${workspaceFolder}/td",
+			"args": ["1234"],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [{ "name": "config", "value": "Debug" }],

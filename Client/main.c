@@ -12,7 +12,7 @@
 #define LEN_REPLY 6 
 
 int main(int argc, char *argv[]){
-	int ret, sd;
+	int ret, sd, i;
 	struct sockaddr_in srv_addr;
 	char buffer[1024];
 
@@ -34,22 +34,24 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 
+	for(i=0; i<5; i++){
+		strcpy(command, "ping");
+		ret = send(sd, (void *)command, sizeof(command), 0);
 
-	strcpy(command, "ping");
-	ret = send(sd, (void *)command, sizeof(command), 0);
+		ret = recv(sd, command, sizeof(command), 0);
 
-	ret = recv(sd, command, sizeof(command), 0);
+		printf("%.*s",
+			(int)sizeof(command), 
+			command
+		);
+		fflush(stdout);
 
-	printf("%.*s",
-		(int)sizeof(command), 
-		command
-	);
-
-	if (ret < 0){
-		perror("Errore in fase di ricezione: \n");
-		exit(-1);
+		if (ret < 0){
+			perror("Errore in fase di ricezione: \n");
+			exit(-1);
+		}
+		sleep(1);
 	}
-	sleep(1);
 
 
 	close(sd);

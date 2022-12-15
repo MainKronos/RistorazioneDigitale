@@ -1,75 +1,47 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/select.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "header.h"
+#include "commands.c"
 
-void job(int socket, fd_set* master){
-	struct sockaddr_in cl_addr; /* Indirizzo client */
-	int nbytes; /* Numero di byte letti */
-	cmd command; /* Comando da processare */
-
-	/* Gestione dati in arrivo da un client */
-	nbytes = recv(socket, command, sizeof(command), 0);
-	if (nbytes < 0){
-		perror("Errore in fase di recv: \n");
-		exit(-1);
-	}
-	if(nbytes == 0) {
-		/* Connessione chiusa */
-		printf("Connessione chiusa da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
-		FD_CLR(socket, master);
-		close(socket);
-	} else {
-		/* Gestione dati */
-		printf("Comando %.*s da %s:%d\n",
-			(int)sizeof(command), 
-			command,
-			inet_ntoa(cl_addr.sin_addr),
-			ntohs(cl_addr.sin_port)
-		);
-
-		if(strcmp(command, "ping") == 0) {
-			strcpy(command, "pong");
-			nbytes = send(socket, command, sizeof(command), 0);
-			if (nbytes < 0){
-				perror("Errore in fase di send: \n");
-				exit(-1);
-			}	
-		}
-	}
-}
+/* Gestore Socket */
+void* socketHandler(void* arg);
 
 int main(int argc, char *argv[]){
 
 	/* --- Variabili --------------------------------------------------------------- */
-	fd_set master; /* Set principale gestito dal programmatore con le macro */
+	fd_set master; /* Set principale */
 	fd_set read_fds; /* Set di lettura gestito dalla select */
 	int fdmax; /* Numero max di descrittori */
 	struct sockaddr_in sv_addr; /* Indirizzo server */
 	struct sockaddr_in cl_addr; /* Indirizzo client */
+	pthread_t thread; /* Thread per la gestione della connessione */
 	int listener; /* Socket per l'ascolto */
-	int newfd; /* Nuova connessione */
+	int* sock; /* Socket nuova connessione */
+	int nbytes; /* Numero di byte letti */
 	
+	cmd command; /* Comando da utente processare */
+
 	socklen_t addrlen;
-	int i;
-	int ret;
-	
-	/* ---------------------------------------------------------------------------- */
+	int ret; /* Valore di ritorno */
+	int i; /* Indice */
+	/* ----------------------------------------------------------------------------- */
 
 	/* Controllo comando*/
 	if(argc != 2) {
-		fprintf(stderr, "Usage: /server <porta>");
+		fprintf(stderr, "Usage: /server <porta>\n");
 		exit(-1);
 	}
 
 	/* --- Setup ------------------------------------------------------------------- */
+
 	/* Azzero i set */
 	FD_ZERO(&master);
 	FD_ZERO(&read_fds);
@@ -96,16 +68,26 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 
+	/* Aggiungo lo stdin al set principale */
+	FD_SET(STDIN_FILENO, &master);
+
 	/* Aggiungo il listener al set principale */
 	FD_SET(listener, &master);
 
 	/* Aggiorno il valore di fdmax */
 	fdmax = listener;
-	/* ---------------------------------------------------------------------------- */
 
-	/* --- Ciclo principale ------------------------------------------------------- */
+	addrlen = sizeof(cl_addr);
+
+	/* ----------------------------------------------------------------------------- */
+
+	/* --- Ciclo principale -------------------------------------------------------- */
 	while(1) {
-		read_fds = master; /* Copio il set principale */
+
+		/* Copio il set master in read_fds */
+		read_fds = master;
+
+		/* Attendo un evento */
 		ret = select(fdmax+1, &read_fds, NULL, NULL, NULL);
 		if (ret < 0){
 			perror("Errore in fase di select: \n");
@@ -116,29 +98,70 @@ int main(int argc, char *argv[]){
 		for(i=0; i<=fdmax; i++) {
 			if(FD_ISSET(i, &read_fds)) {
 				if(i == listener) {
-
 					/* Gestione nuova connessione */
-					addrlen = sizeof(cl_addr);
-					newfd = accept(listener, (struct sockaddr *)&cl_addr, &addrlen);
-					if (newfd < 0){
+					sock = malloc(sizeof(int));
+					*sock = accept(listener, (struct sockaddr *)&cl_addr, &addrlen);
+					if (*sock < 0){
 						perror("Errore in fase di accept: \n");
 						exit(-1);
 					}
-					FD_SET(newfd, &master);
-					if(newfd > fdmax) {
-						fdmax = newfd;
-					}
 					printf("Nuova connessione da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
-				} else {
-					
-					job(i, &master);
+
+					/* Creazione thread per la gestione della connessione */
+					ret = pthread_create(&thread, NULL, socketHandler, (void*)sock);
+				}else if(i == STDIN_FILENO) {
+					/* Gestione input da tastiera */
+					nbytes = read(i, command, sizeof(command));
+					if (nbytes > 0) printf("%.*s", ret, command);
+					else break;
 				}
 			}
 		}
+
+		
 	}
-	/* ---------------------------------------------------------------------------- */
+	/* ----------------------------------------------------------------------------- */
 
 	return 0;
 
 	
+}
+
+void* socketHandler(void* arg)
+{
+	int sock = *((int*)arg); /* Socket per la connessione */
+	struct sockaddr_in cl_addr; /* Indirizzo client */
+	socklen_t addrlen;
+	int nbytes; /* Numero di byte letti */
+	cmd command; /* Comando da processare */
+
+	addrlen = sizeof(cl_addr);
+	getpeername(sock, (struct sockaddr *)&cl_addr, &addrlen);
+
+	while(1){
+		/* Gestione dati in arrivo da un client */
+		nbytes = recv(sock, command, sizeof(command), 0);
+		if (nbytes < 0){
+			perror("Errore in fase di recv: \n");
+			exit(-1);
+		} else if(nbytes == 0) {
+			/* Connessione chiusa */
+			printf("Connessione chiusa da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
+			close(sock);
+			break;
+		} else if(nbytes > 0) {
+			/* Dati ricevuti */
+			printf("Dati ricevuti da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
+			printf("Comando: %.*s\n", (int)sizeof(command), command);
+
+			/* Processamento comando */
+			if(strcmp(command, "ping") == 0) {
+				ping(sock);
+			}
+		}
+	}
+
+
+	free(arg);
+	pthread_exit(NULL);
 }

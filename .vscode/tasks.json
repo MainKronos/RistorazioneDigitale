@@ -9,16 +9,13 @@
                 "${relativeFileDirname}"
             ],
             "problemMatcher": [
-                "$msCompile"
+                "$gcc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "group": "build",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
             },
-			"presentation": {
-				"reveal": "silent",
-				"panel": "shared"
-			},
             "detail": "Build the current file"
         }
     ]
