@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "make",
+            "command": "make",
+            "args": [
+                "${relativeFileDirname}"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+			"presentation": {
+				"reveal": "silent",
+				"panel": "shared"
+			},
+            "detail": "Build the current file"
+        }
+    ]
+}
