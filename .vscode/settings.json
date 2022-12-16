@@ -1,0 +1,23 @@
+{
+	"makefile.launchConfigurations": [
+		{
+			"cwd": "/home/lorenzo/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/RistorazioneDigitale/server",
+			"binaryArgs": [
+				"1234"
+			]
+		},
+		{
+			"cwd": "/home/lorenzo/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/RistorazioneDigitale/td",
+			"binaryArgs": [
+				"1234"
+			]
+		},
+		{
+			"cwd": "/home/lorenzo/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/RistorazioneDigitale/cli",
+			"binaryArgs": []
+		}
+	]
+}
