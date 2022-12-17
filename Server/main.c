@@ -9,10 +9,17 @@
 #include <pthread.h>
 
 #include "header.h"
-#include "commands.c"
 
 /* Gestore Socket */
 void* socketHandler(void* arg);
+
+/* --- Gestione Comandi ----------- */
+/* Risponde al ping */
+void ping(int sd);
+
+/* Invia il menù al TableDevice */
+void td_menu(int sd);
+
 
 int main(int argc, char *argv[]){
 
@@ -135,7 +142,7 @@ void* socketHandler(void* arg) {
 	cmd command; /* Comando da processare */
 
 	addrlen = sizeof(cl_addr);
-	getpeername(SO_DETACH_FILTER, (struct sockaddr *)&cl_addr, &addrlen);
+	getpeername(sd, (struct sockaddr *)&cl_addr, &addrlen);
 
 	while(1){
 		/* Gestione dati in arrivo da un client */
@@ -162,7 +169,70 @@ void* socketHandler(void* arg) {
 		}
 	}
 
-
 	free(arg);
 	pthread_exit(NULL);
+}
+
+/* --- COMANDI ---------------------------------------------------------------------------------------------------- */
+
+void ping(int sd){
+	char buffer[] = "pong";
+	send(sd, (void*)buffer, sizeof(buffer), 0);
+}
+
+void td_menu(int sd){
+	static int loaded = 0; /* Se il menu è già stato caricato */
+	static struct piatto p[M_LEN]; /* Menu */
+	int i; /* Indice */
+
+	/* Controllo se il menu è stato inizzializzato, altrimenti lo inizializzo */
+	if(!loaded){	
+		/* Inizializzazione menu */
+
+		/* Antipasti */
+		strcpy(p[0].tipo, "A1");
+		strcpy(p[0].nome, "Antipasto di terra");
+		p[0].prezzo = 7;
+
+		strcpy(p[1].tipo, "A2");
+		strcpy(p[1].nome, "Antipasto di mare");
+		p[1].prezzo = 8;
+
+		/* Primi */
+		strcpy(p[2].tipo, "P1");
+		strcpy(p[2].nome, "Spaghetti alle vongole");
+		p[2].prezzo = 10;
+
+		strcpy(p[3].tipo, "P2");
+		strcpy(p[3].nome, "Rigatoni all'amatriciana");
+		p[3].prezzo = 6;
+
+		/* Secondi */
+		strcpy(p[4].tipo, "S1");
+		strcpy(p[4].nome, "Frittura di calamari");
+		p[4].prezzo = 20;
+
+		strcpy(p[5].tipo, "S2");
+		strcpy(p[5].nome, "Arrosto misto");
+		p[5].prezzo = 15;
+
+		/* Dolci */
+		strcpy(p[6].tipo, "D1");
+		strcpy(p[6].nome, "Crostata di mele");
+		p[6].prezzo = 5;
+
+		strcpy(p[7].tipo, "D2");
+		strcpy(p[7].nome, "Zuppa inglese");
+		p[7].prezzo = 5;
+		
+		loaded = 1;
+	}
+	
+	/* Invio del menu */
+	for(i=0; i<M_LEN; i++){
+		u_int32_t tmp = htonl(p[i].prezzo);
+		send(sd, (void*)&p[i].tipo, sizeof(p[i].tipo), 0);
+		send(sd, (void*)&p[i].nome, sizeof(p[i].nome), 0);
+		send(sd, (void*)&tmp, sizeof(tmp), 0);
+	}
 }

@@ -19,7 +19,6 @@ int main(int argc, char *argv[]){
 
 	/* --- Variabili --------------------------------------------------------------- */
 	struct sockaddr_in sv_addr; /* Indirizzo server */
-	int command; /* Comando selezionato */
 	int sd; /* Descrittore Socket */
 	int ret; /* Valore di ritorno */
 	/* ----------------------------------------------------------------------------- */
@@ -49,6 +48,9 @@ int main(int argc, char *argv[]){
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 	while(1){
+		cmd command; /* Comando selezionato */
+
+
 		printf("\033[H\033[J"); /* Pulizia schermo */
 		printf("***************************** BENVENUTO *****************************\n");
 		printf("Digita un comando: \033[s\n"); 
@@ -58,22 +60,25 @@ int main(int argc, char *argv[]){
 		printf("3) comanda		--> invia una comanda\n");
 		printf("4) conto		--> chiede il conto\n");
 		printf("\033[u");
-		ret = scanf("%d%*c", &command);
+
+		ret = scanf("%s", command);
 
 		if(ret > 0){
-			switch (command){
-				case 1:
-					help();
-					break;
-				case 2:
-					menu(sd);
-					break;
-				
-				default:
-					break;
+			if(strcmp(command, "help") == 0){
+				help();
+			}
+			else if(strcmp(command, "menu") == 0){
+				menu(sd);
+			}
+			else if(strcmp(command, "comanda") == 0){
+				/* comanda(sd); */
+			}
+			else if(strcmp(command, "conto") == 0){
+				/* conto(sd); */
 			}
 		}
 
+		scanf("%*c");
 	}
 	/* ----------------------------------------------------------------------------- */
 
@@ -91,13 +96,13 @@ void help(void){
 	printf("\n");
 	printf("\033[1m\033[4m\033[34mconto\033[0m\n");
 	printf("Invia al server la richiesta di conto. Il server calcola il conto e lo invia al table device, che lo mostra a video.\n");
+	printf("\nPremi INVIO per continuare...");
 	getchar();
 }
 
 void menu(int sd){
-
-	struct menu m; /* Menu */
 	int ret; /* Valore di ritorno */
+	int i; /* Indice */
 
 	/* Richiesta menù */
 	ret = send(sd, TD_MENU, sizeof(TD_MENU), 0); /* Invio richiesta del menu */
@@ -106,22 +111,33 @@ void menu(int sd){
 		exit(-1);
 	}
 
-	/* Ricezione menu */
-	ret = recv(sd, &m, sizeof(m), 0);
-	if(ret < 0){
-		perror("Errore in fase di ricezione del menù: \n");
-		exit(-1);
-	}
-
-	/* Stampa menu */
 	printf("\033[H\033[J"); /* Pulizia schermo */
-	printf("A1 - %s\t\t%d\n", m.antipasto[0].nome, m.antipasto[0].prezzo);
-	printf("A2 - %s\t\t%d\n", m.antipasto[1].nome, m.antipasto[1].prezzo);
-	printf("P1 - %s\t\t%d\n", m.primo[0].nome, m.primo[0].prezzo);
-	printf("P2 - %s\t\t%d\n", m.primo[1].nome, m.primo[1].prezzo);
-	printf("S1 - %s\t\t%d\n", m.secondo[0].nome, m.secondo[0].prezzo);
-	printf("S2 - %s\t\t%d\n", m.secondo[1].nome, m.secondo[1].prezzo);
-	printf("D1 - %s\t\t%d\n", m.dolce[0].nome, m.dolce[0].prezzo);
-	printf("D2 - %s\t\t%d\n", m.dolce[1].nome, m.dolce[1].prezzo);
+
+	/* Ricezione menu e stampa */
+	for(i=0; i<M_LEN; i++){
+		struct piatto p;
+		ret = recv(sd, &p.tipo, sizeof(p.tipo), 0);
+		if(ret < 0){
+			perror("Errore in fase di ricezione del menù: \n");
+			exit(-1);
+		}
+
+		ret = recv(sd, &p.nome, sizeof(p.nome), 0);
+		if(ret < 0){
+			perror("Errore in fase di ricezione del menù: \n");
+			exit(-1);
+		}
+
+		ret = recv(sd, &p.prezzo, sizeof(p.prezzo), 0);
+		if(ret < 0){
+			perror("Errore in fase di ricezione del menù: \n");
+			exit(-1);
+		}
+		p.prezzo = ntohl(p.prezzo);
+
+		printf("%s - %s %d\n", p.tipo, p.nome, p.prezzo);
+	}
+	
+	printf("\nPremi INVIO per continuare...");
 	getchar();
 }

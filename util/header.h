@@ -1,17 +1,18 @@
 #ifndef my_header
 #define my_header
+
+/* Tipo del piatto */
+typedef char type[3];
+
 struct piatto{
-	char nome[20];
-	u_int8_t prezzo; /* Prezzo sicuramente inferiore a 255 euro */
+	type tipo; /* Tipo di piatto */
+	char nome[255]; /* Nome del piatto */
+	u_int32_t prezzo; /* Prezzo del piatto */
 };
 
-struct menu{
-	struct piatto antipasto[2];
-	struct piatto primo[2];
-	struct piatto secondo[2];
-	struct piatto dolce[2];
-};
+#define M_LEN 8 /* Numero di piatti del menu */
 
+/* Comando */
 typedef char cmd[20];
 
 /* Comando ping */

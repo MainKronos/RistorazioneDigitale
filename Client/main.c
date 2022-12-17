@@ -9,50 +9,44 @@
 
 #include "header.h"
 
-#define LEN_REPLY 6 
-
 int main(int argc, char *argv[]){
-	int ret, sd, i;
-	struct sockaddr_in srv_addr;
-	char buffer[1024];
 
-	cmd command; /* Comando da inviare */
+	/* --- Variabili --------------------------------------------------------------- */
+	struct sockaddr_in sv_addr; /* Indirizzo server */
+	int sd; /* Descrittore Socket */
+	int ret; /* Valore di ritorno */
+	/* ----------------------------------------------------------------------------- */
 
+	/* Controllo comando*/
+	if(argc != 2) {
+		fprintf(stderr, "Usage: /cli <porta>\n");
+		exit(-1);
+	}
+	/* --- Setup ------------------------------------------------------------------- */
 	/* Creazione socket */
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 
 	/* Creazione indirizzo del server */
-	memset(&srv_addr, 0, sizeof(srv_addr));
-	srv_addr.sin_family = AF_INET;
-	srv_addr.sin_port = htons(1234);
-	inet_pton(AF_INET, "127.0.0.1", &srv_addr.sin_addr);
+	memset(&sv_addr, 0, sizeof(sv_addr));
+	sv_addr.sin_family = AF_INET;
+	inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
+	sv_addr.sin_port = htons(atoi(argv[1]));
 
-	ret = connect(sd, (struct sockaddr *)&srv_addr, sizeof(srv_addr));
-
+	/* Connessione al server */
+	ret = connect(sd, (struct sockaddr *)&sv_addr, sizeof(sv_addr));
 	if (ret < 0){
 		perror("Errore in fase di connessione: \n");
 		exit(-1);
 	}
+	/* ----------------------------------------------------------------------------- */
 
-	for(i=0; i<5; i++){
-		strcpy(command, "ping");
-		ret = send(sd, (void *)command, sizeof(command), 0);
+	/* --- Ciclo principale -------------------------------------------------------- */
+	while(1){
+		
 
-		ret = recv(sd, command, sizeof(command), 0);
-
-		printf("%.*s",
-			(int)sizeof(command), 
-			command
-		);
-		fflush(stdout);
-
-		if (ret < 0){
-			perror("Errore in fase di ricezione: \n");
-			exit(-1);
-		}
-		sleep(1);
 	}
+	/* ----------------------------------------------------------------------------- */
 
-
+	/* Chiusura collegamento */
 	close(sd);
 }
