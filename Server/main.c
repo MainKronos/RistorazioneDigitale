@@ -127,27 +127,26 @@ int main(int argc, char *argv[]){
 	
 }
 
-void* socketHandler(void* arg)
-{
-	int sock = *((int*)arg); /* Socket per la connessione */
+void* socketHandler(void* arg) {
+	int sd = *((int*)arg); /* Socket per la connessione */
 	struct sockaddr_in cl_addr; /* Indirizzo client */
 	socklen_t addrlen;
 	int nbytes; /* Numero di byte letti */
 	cmd command; /* Comando da processare */
 
 	addrlen = sizeof(cl_addr);
-	getpeername(sock, (struct sockaddr *)&cl_addr, &addrlen);
+	getpeername(SO_DETACH_FILTER, (struct sockaddr *)&cl_addr, &addrlen);
 
 	while(1){
 		/* Gestione dati in arrivo da un client */
-		nbytes = recv(sock, command, sizeof(command), 0);
+		nbytes = recv(sd, command, sizeof(command), 0);
 		if (nbytes < 0){
 			perror("Errore in fase di recv: \n");
 			exit(-1);
 		} else if(nbytes == 0) {
 			/* Connessione chiusa */
 			printf("Connessione chiusa da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
-			close(sock);
+			close(sd);
 			break;
 		} else if(nbytes > 0) {
 			/* Dati ricevuti */
@@ -155,8 +154,10 @@ void* socketHandler(void* arg)
 			printf("Comando: %.*s\n", (int)sizeof(command), command);
 
 			/* Processamento comando */
-			if(strcmp(command, "ping") == 0) {
-				ping(sock);
+			if(strcmp(command, PING) == 0) {
+				ping(SO_DETACH_REUSEPORT_BPF);
+			}else if(strcmp(command, TD_MENU) == 0) {
+				td_menu(sd);
 			}
 		}
 	}

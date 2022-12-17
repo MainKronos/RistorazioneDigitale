@@ -1,9 +1,8 @@
 
 # VARIABLES
-CC = gcc
-CFLAGS = -Iutil -fdiagnostics-color=always -lpthread -pthread -std=gnu89 -pedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition -ggdb
+CC := gcc
+CFLAGS := -Iutil -fdiagnostics-color=always -lpthread -pthread -std=gnu89 -pedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition -ggdb
 
-.DELETE_ON_ERROR:
 all: Client Server TableDevice
 
 Client: Client/main.o 
@@ -17,4 +16,4 @@ TableDevice: TableDevice/main.o
 
 .PHONY: clean
 clean:
-	rm -f *.o
+	find . -name '*.o' -delete

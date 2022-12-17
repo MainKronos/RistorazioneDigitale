@@ -1,22 +1,32 @@
 {
 	"makefile.launchConfigurations": [
 		{
-			"cwd": "/home/lorenzo/RistorazioneDigitale",
-			"binaryPath": "/home/lorenzo/RistorazioneDigitale/server",
+			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/server",
 			"binaryArgs": [
 				"1234"
 			]
 		},
 		{
-			"cwd": "/home/lorenzo/RistorazioneDigitale",
-			"binaryPath": "/home/lorenzo/RistorazioneDigitale/td",
+			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/td",
 			"binaryArgs": [
 				"1234"
 			]
 		},
 		{
-			"cwd": "/home/lorenzo/RistorazioneDigitale",
-			"binaryPath": "/home/lorenzo/RistorazioneDigitale/cli",
+			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/cli",
+			"binaryArgs": []
+		},
+		{
+			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/server",
+			"binaryArgs": []
+		},
+		{
+			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/td",
 			"binaryArgs": []
 		}
 	]
