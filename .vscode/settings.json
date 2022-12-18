@@ -17,17 +17,9 @@
 		{
 			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
 			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/cli",
-			"binaryArgs": []
-		},
-		{
-			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
-			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/server",
-			"binaryArgs": []
-		},
-		{
-			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
-			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/td",
-			"binaryArgs": []
+			"binaryArgs": [
+				"1234"
+			]
 		}
 	]
 }

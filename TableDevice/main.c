@@ -92,7 +92,7 @@ void help(void){
 	printf("Mostra il menu, cioè l'abbinamento fra codici, nomi dei piatti e relativi prezzi.\n");
 	printf("\n");
 	printf("\033[1m\033[4m\033[34mcomanda\033[0m \033[34m {<piatto_1-quantità_1>...<piatto_n-quantità_n>}\033[0m\n");
-	printf("invia una comanda alla cucina.\n");
+	printf("Invia una comanda alla cucina.\n");
 	printf("\n");
 	printf("\033[1m\033[4m\033[34mconto\033[0m\n");
 	printf("Invia al server la richiesta di conto. Il server calcola il conto e lo invia al table device, che lo mostra a video.\n");
@@ -102,7 +102,8 @@ void help(void){
 
 void menu(int sd){
 	int ret; /* Valore di ritorno */
-	int i; /* Indice */
+	unsigned int i; /* Indice */
+	len n; /* numero piatti del menu */
 
 	/* Richiesta menù */
 	ret = send(sd, TD_MENU, sizeof(TD_MENU), 0); /* Invio richiesta del menu */
@@ -111,10 +112,17 @@ void menu(int sd){
 		exit(-1);
 	}
 
+	ret = recv(sd, &n, sizeof(n), 0);
+	if(ret < 0){
+		perror("Errore in fase di ricezione del menù: \n");
+		exit(-1);
+	}
+	n = ntohl(n);
+
 	printf("\033[H\033[J"); /* Pulizia schermo */
 
 	/* Ricezione menu e stampa */
-	for(i=0; i<M_LEN; i++){
+	for(i=0; i<n; i++){
 		struct piatto p;
 		ret = recv(sd, &p.tipo, sizeof(p.tipo), 0);
 		if(ret < 0){
