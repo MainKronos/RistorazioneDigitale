@@ -1,8 +1,7 @@
-
-
 #ifndef my_header
 #define my_header
 
+#include <pthread.h>
 
 /*--- TIPI --------------------------------------------------------------*/
 
@@ -13,6 +12,8 @@ typedef char cmd[20];
 typedef char type[3];
 
 typedef uint32_t len; /* Numero di elementi */
+
+typedef char response[1024]; /* Risposta del server */
 
 /* Informazioni del piatto */
 struct piatto{
@@ -32,13 +33,12 @@ struct date{
 struct prenotazione{
 	char cognome[255]; /* Cognome del cliente che ha prenotato */
 	uint16_t n_persone; /* Numero di persone */
-	struct date data; /* Data della prenotazione */
-	uint16_t ora; /* Ora della prenotazione */
+	time_t datetime; /* Data e ora della prenotazione */
 
 	/* Informazioni aggiuntive del server */
 
 	struct tavolo* tavolo; /* Tavolo prenotato */
-	uint64_t timestamp; /* Timestamp della prenotazione */
+	time_t timestamp; /* Timestamp del momento della finalizzazione della prenotazione */
 };
 
 /* Informazioni sul tavolo */
@@ -70,5 +70,8 @@ const cmd TD_MENU = "menu";
 
 /* Ricerca disponibilità prenotazione per il Client */
 const cmd CL_FIND = "find";
+
+/* Richiesta prenotazione tavolo per il Client */
+const cmd CL_BOOK = "book";
 
 #endif

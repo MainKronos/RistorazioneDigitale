@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "header.h"
 
@@ -14,6 +15,9 @@ void help(void);
 
 /* Ricerca la disponibilità per una prenotazione */
 void find(int sd);
+
+/* Invia una prenotazione */
+void book(int sd);
 
 int main(int argc, char *argv[]){
 
@@ -54,10 +58,10 @@ int main(int argc, char *argv[]){
 		printf("***************************** CLIENT *****************************\n");
 		printf("Digita un comando: \033[s\n"); 
 		printf("\n");
-		printf("1) help			--> mostra i dettagli dei comandi\n");
-		printf("2) find			--> ricerca la disponibilità per una prenotazione\n");
-		printf("3) book			--> invia una prenotazione\n");
-		printf("4) esc			--> termina il client\n");
+		printf("1) help		--> mostra i dettagli dei comandi\n");
+		printf("2) find		--> ricerca la disponibilità per una prenotazione\n");
+		printf("3) book		--> invia una prenotazione\n");
+		printf("4) esc		--> termina il client\n");
 		printf("\033[u");
 
 		ret = scanf("%s", command);
@@ -70,7 +74,7 @@ int main(int argc, char *argv[]){
 				find(sd);
 			}
 			else if(strcmp(command, "book") == 0){
-				/* book(sd); */
+				book(sd);
 			}
 			else if(strcmp(command, "esc") == 0){
 				printf("\033[H\033[J"); /* Pulizia schermo */
@@ -78,6 +82,7 @@ int main(int argc, char *argv[]){
 			}
 		}
 		scanf("%*c");
+		fflush(stdin);
 
 	}
 	/* ----------------------------------------------------------------------------- */
@@ -105,56 +110,90 @@ void help(void){
 void find(int sd){
 	int ret; /* Valore di ritorno */
 	int i; /* Indice */
-	uint16_t tmp; /* Variabile temporanea */
+	struct tm datetime; /* Variabile temporanea per contenere la data e l'ora */
+	time_t timestamp; /* Variabile temporanea l'invio del timestamp della prenotazione */
+	uint16_t n_persone; /* Variabile temporanea per l'invio del numero di persone */
 	struct prenotazione p; /* Prenotazione da inviare */
 	len n; /* Numero di tavoli trovati */
 	struct tavolo t; /* buffer per i tavolo trovati */
 
+	memset(&datetime, 0, sizeof(datetime)); /* Pulizia struttura */
 	memset(&p, 0, sizeof(p)); /* Pulizia struttura */
 	memset(&t, 0, sizeof(t)); /* Pulizia struttura */
 
-	scanf("%s %hu %hu-%hu-%hu %hu", p.cognome, &p.n_persone, &p.data.giorno, &p.data.mese, &p.data.anno, &p.ora);
+	scanf("%s %hu %d-%d-%d %d", p.cognome, &p.n_persone, &datetime.tm_mday, &datetime.tm_mon, &datetime.tm_year, &datetime.tm_hour);
+
+	datetime.tm_mon -= 1; /* Correzione mese */
+	datetime.tm_year += 100; /* Correzione anno */
+
+	p.datetime = mktime(&datetime); /* Conversione in timestamp */
 
 	printf("\033[H\033[J"); /* Pulizia schermo */
 
-	/* Richiesta menù */
-	ret = send(sd, CL_FIND, sizeof(CL_FIND), 0); /* Invio richiesta del menu */
-	if(ret < 0){
-		perror("Errore in fase di richiesta del menù: \n");
-		exit(-1);
-	}
+	if(difftime(p.datetime, time(NULL)) > 0){
 
-	/* Invio prenotazione */
-	send(sd, p.cognome, sizeof(p.cognome), 0);
-	tmp = htons(p.n_persone);
-	send(sd, &tmp, sizeof(tmp), 0);
-	tmp = htons(p.data.giorno);
-	send(sd, &tmp, sizeof(tmp), 0);
-	tmp = htons(p.data.mese);
-	send(sd, &tmp, sizeof(tmp), 0);
-	tmp = htons(p.data.anno);
-	send(sd, &tmp, sizeof(tmp), 0);
-	tmp = htons(p.ora);
-	send(sd, &tmp, sizeof(tmp), 0);
-
-	/* Ricezione numero tavoli */
-	recv(sd, &n, sizeof(n), 0);
-	n = ntohs(n);
-
-	if(n == 0){
-		printf("Nessun tavolo disponibile\n");
-	}
-	else{
-		printf("Tavoli disponibili:\n");
-		for(i = 0; i < (int)n; i++){
-			recv(sd, &t.id, sizeof(t.id), 0);
-			recv(sd, &t.sala, sizeof(t.sala), 0);
-			recv(sd, t.ubicazione, sizeof(t.ubicazione), 0);
-
-			printf("%d) T%d SALA%d %s\n", i, t.id, t.sala, t.ubicazione);
+		/* Richiesta menù */
+		ret = send(sd, CL_FIND, sizeof(CL_FIND), 0); /* Invio richiesta del menu */
+		if(ret < 0){
+			perror("Errore in fase di richiesta del menù: \n");
+			exit(-1);
 		}
+
+		/* Invio prenotazione */
+		send(sd, p.cognome, sizeof(p.cognome), 0);
+		n_persone = htons(p.n_persone);
+		send(sd, &n_persone, sizeof(n_persone), 0);
+		timestamp = htonl(p.datetime);
+		send(sd, &timestamp, sizeof(timestamp), 0);
+
+		/* Ricezione numero tavoli */
+		recv(sd, &n, sizeof(n), 0);
+		n = ntohs(n);
+
+		if(n == 0){
+			printf("Nessun tavolo disponibile\n");
+		}
+		else{
+			printf("Tavoli disponibili:\n");
+			for(i = 0; i < (int)n; i++){
+				recv(sd, &t.id, sizeof(t.id), 0);
+				recv(sd, &t.sala, sizeof(t.sala), 0);
+				recv(sd, t.ubicazione, sizeof(t.ubicazione), 0);
+
+				printf("%d) T%-5d SALA%-5d %s\n", i, t.id, t.sala, t.ubicazione);
+			}
+		}
+	}else{
+		printf("La data %.24s non è valida \n", ctime(&p.datetime));
 	}
 
 	printf("\nPremi INVIO per continuare...");
-	getchar();
+	getchar(); 
+}
+
+void book(int sd){
+	int ret; /* Valore di ritorno */
+	len choice; /* Scelta dell'utente */
+	response r; /* Risposta dal server */
+
+	scanf("%u", &choice);
+	printf("\033[H\033[J"); /* Pulizia schermo */
+
+	/* Invio scelta */
+	/* Richiesta menù */
+	ret = send(sd, CL_BOOK, sizeof(CL_BOOK), 0); /* Invio richiesta prenotazione tavolo */
+	if(ret < 0){
+		perror("Errore in fase di invio della selezione tavolo: \n");
+		exit(-1);
+	}
+
+	choice = htonl(choice);
+	send(sd, &choice, sizeof(choice), 0); /* Invio scelta */
+
+	/* Ricezione conferma */
+	recv(sd, r, sizeof(r), 0);
+	printf("%s\n", r);
+
+	printf("\nPremi INVIO per continuare...");
+	getchar(); 
 }

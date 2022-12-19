@@ -1,7 +1,7 @@
 
 # VARIABLES
 CC := gcc
-CFLAGS := -Iutil -fdiagnostics-color=always -lpthread -pthread -std=c89 -pedantic -Wall -Wextra -Werror -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition -ggdb
+CFLAGS := -Iutils -fdiagnostics-color=always -lpthread -pthread -std=c89 -pedantic -Wall -Wextra -Werror -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition -ggdb
 
 all: Client Server TableDevice
 
