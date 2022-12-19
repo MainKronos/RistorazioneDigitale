@@ -18,7 +18,7 @@ int td_menu(int sd){
 	/* Invio del menu */
 	for(i=0; i<N_PIATTI; i++){
 		uint32_t tmp = htonl(menu[i].prezzo);
-		send(sd, (void*)&menu[i].tipo, sizeof(menu[i].tipo), 0);
+		send(sd, (void*)&menu[i].code, sizeof(menu[i].code), 0);
 		send(sd, (void*)&menu[i].nome, sizeof(menu[i].nome), 0);
 		send(sd, (void*)&tmp, sizeof(tmp), 0);
 	}

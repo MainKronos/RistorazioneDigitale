@@ -18,7 +18,10 @@ void menu(int sd);
 int main(int argc, char *argv[]){
 
 	/* --- Variabili --------------------------------------------------------------- */
+	fd_set master; /* Set principale */
+	fd_set read_fds; /* Set di lettura gestito dalla select */
 	struct sockaddr_in sv_addr; /* Indirizzo server */
+	
 	int sd; /* Descrittore Socket */
 	int ret; /* Valore di ritorno */
 	/* ----------------------------------------------------------------------------- */
@@ -29,6 +32,10 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 	/* --- Setup ------------------------------------------------------------------- */
+	
+	FD_ZERO(&master);
+	FD_ZERO(&read_fds);
+
 	/* Creazione socket */
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -44,7 +51,14 @@ int main(int argc, char *argv[]){
 		perror("Errore in fase di connessione: \n");
 		exit(-1);
 	}
-	/* ----------------------------------------------------------------------------- */
+
+	/* Aggiungo lo stdin al set principale */
+	FD_SET(STDIN_FILENO, &master);
+
+	/* Aggiungo il socket al set principale */
+	FD_SET(sd, &master);
+
+	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 	while(1){
@@ -60,30 +74,54 @@ int main(int argc, char *argv[]){
 		printf("> comanda	--> invia una comanda\n");
 		printf("> conto		--> chiede il conto\n");
 		printf("\033[u");
+		fflush(stdout);
 
-		ret = scanf("%s", command);
+		/* Copio il set master in read_fds */
+		read_fds = master;
 
-		if(ret > 0){
-			if(strcmp(command, "help") == 0){
-				help();
-			}
-			else if(strcmp(command, "menu") == 0){
-				menu(sd);
-			}
-			else if(strcmp(command, "comanda") == 0){
-				/* comanda(sd); */
-			}
-			else if(strcmp(command, "conto") == 0){
-				/* conto(sd); */
-			}
+		/* Attendo un evento */
+		ret = select(sd+1, &read_fds, NULL, NULL, NULL);
+		if (ret < 0){
+			perror("Errore in fase di select: ");
+			exit(-1);
 		}
 
-		scanf("%*c");
+		/* Controllo se è arrivato qualcosa sullo stdin */
+		if(FD_ISSET(STDIN_FILENO, &read_fds)){
+
+			ret = scanf("%s", command);
+
+			if(ret > 0){
+				if(strcmp(command, "help") == 0){
+					help();
+				}
+				else if(strcmp(command, "menu") == 0){
+					menu(sd);
+				}
+				else if(strcmp(command, "comanda") == 0){
+					/* comanda(sd); */
+				}
+				else if(strcmp(command, "conto") == 0){
+					/* conto(sd); */
+				}
+			}
+
+			scanf("%*c"); /* Pulizia buffer */
+			fflush(stdin);
+		} else if(FD_ISSET(sd, &read_fds)){
+			/* Se è arrivato qualcosa dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
+			break;
+		}
 	}
 	/* ----------------------------------------------------------------------------- */
 
+	printf("\033[H\033[J"); /* Pulizia schermo */
+
 	/* Chiusura collegamento */
 	close(sd);
+	printf("TableDevice scollegato.\n");
+
+	return 0;
 }
 
 void help(void){

@@ -25,29 +25,29 @@ int cl_find(int sd){
 	/* Allocazione di una nuova prenotazione in sospeso */
 	p_sosp = malloc(sizeof(struct pre_sosp)); /* Allocazione memoria */
 	memset(p_sosp, 0, sizeof(*p_sosp)); /* Pulizia struttura */
-	p_sosp->p = malloc(sizeof(struct prenotazione)); /* Allocazione memoria */
+	p_sosp->p = malloc(sizeof(struct prenotazione_sv)); /* Allocazione memoria */
 	memset(p_sosp->p, 0, sizeof(*p_sosp->p));  /* Pulizia struttura */
 	p_sosp->sd = sd; /* Salvataggio descrittore socket */
 	insertPrenotazioneSospesa(p_sosp); /* Inserimento prenotazione in sospeso */
 
 	/* Ricezione prenotazione ----------------------------------------------- */
-	ret = recv(sd, p_sosp->p->cognome, sizeof(p_sosp->p->cognome), 0);
+	ret = recv(sd, p_sosp->p->inf.cognome, sizeof(p_sosp->p->inf.cognome), 0);
 	if(ret<=0){
 		if(ret<0) perror("cl_find: ");
 		return -1;
 	}
-	ret = recv(sd, &p_sosp->p->n_persone, sizeof(p_sosp->p->n_persone), 0);
+	ret = recv(sd, &p_sosp->p->inf.n_persone, sizeof(p_sosp->p->inf.n_persone), 0);
 	if(ret<=0){
 		if(ret<0) perror("cl_find: ");
 		return -1;
 	}
-	p_sosp->p->n_persone = ntohs(p_sosp->p->n_persone);
-	recv(sd, &p_sosp->p->datetime, sizeof(p_sosp->p->datetime), 0);
+	p_sosp->p->inf.n_persone = ntohs(p_sosp->p->inf.n_persone);
+	recv(sd, &p_sosp->p->inf.datetime, sizeof(p_sosp->p->inf.datetime), 0);
 	if(ret<=0){
 		if(ret<0) perror("cl_find: ");
 		return -1;
 	}
-	p_sosp->p->datetime = ntohl(p_sosp->p->datetime);
+	p_sosp->p->inf.datetime = ntohl(p_sosp->p->inf.datetime);
 
 	/* ---------------------------------------------------------------------- */
 
@@ -66,9 +66,9 @@ int cl_find(int sd){
 	send(sd, &tmp, sizeof(tmp), 0);
 	for(i=0; i<(int)p_sosp->nlen; i++){
 		/* Invio tavoli liberi trovati */
-		send(sd, &p_sosp->t[i]->id, sizeof(p_sosp->t[i]->id), 0);
-		send(sd, &p_sosp->t[i]->sala, sizeof(p_sosp->t[i]->sala), 0);
-		send(sd, p_sosp->t[i]->ubicazione, sizeof(p_sosp->t[i]->ubicazione), 0);
+		send(sd, &p_sosp->t[i]->inf.id, sizeof(p_sosp->t[i]->inf.id), 0);
+		send(sd, &p_sosp->t[i]->inf.sala, sizeof(p_sosp->t[i]->inf.sala), 0);
+		send(sd, p_sosp->t[i]->inf.ubicazione, sizeof(p_sosp->t[i]->inf.ubicazione), 0);
 	}
 	return 0;
 }

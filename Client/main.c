@@ -61,7 +61,6 @@ int main(int argc, char *argv[]){
 
 	/* Aggiungo il socket al set principale */
 	FD_SET(sd, &master);
-	/* ----------------------------------------------------------------------------- */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 	while(1){
@@ -106,9 +105,9 @@ int main(int argc, char *argv[]){
 					break;
 				}
 			}
-			scanf("%*c");
+			scanf("%*c"); /* Pulizia buffer */
 			fflush(stdin);
-		}else if(FD_ISSET(sd, &read_fds)){
+		} else if(FD_ISSET(sd, &read_fds)){
 			/* Se è arrivato qualcosa dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
 			break;
 		}

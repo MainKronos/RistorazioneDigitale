@@ -39,7 +39,7 @@ int cl_book(int sd){
 			/* Prenotazione tavolo */
 			if(bookSlot(p_sosp->t[choice], p_sosp->p)){
 				strcpy(r, "Prenotazione effettuata con successo.");
-				printf("Prenotazione di %d posti del tavolo %d a nome %s per il %.24s effettuata per il client %s:%d\n", p_sosp->p->n_persone, p_sosp->p->tavolo->id, p_sosp->p->cognome, ctime(&p_sosp->p->datetime), inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
+				printf("Prenotazione di %d posti del tavolo %d a nome %s per il %.24s effettuata per il client %s:%d\n", p_sosp->p->inf.n_persone, p_sosp->p->tavolo->inf.id, p_sosp->p->inf.cognome, ctime(&p_sosp->p->inf.datetime), inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
 			
 				/* Rimozione prenotazione in sospeso */
 				removePrenotazioneSospesa(sd);

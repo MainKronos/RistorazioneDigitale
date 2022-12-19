@@ -12,7 +12,7 @@
 #include "main.h" /* Variabili globali */
 
 /* Gestore Socket */
-void* socketHandler(void* arg);
+static void* socketHandler(void* arg);
 
 int main(int argc, char *argv[]){
 
@@ -168,6 +168,8 @@ void* socketHandler(void* arg) {
 			/* Processamento comando */
 			if(strcmp(command, PING) == 0) {
 				if(ping(sd)) break;
+			}else if(strcmp(command, TD_GETID) == 0){
+				if(td_getid(sd)) break;
 			}else if(strcmp(command, TD_MENU) == 0) {
 				if(td_menu(sd)) break;
 			}else if(strcmp(command, CL_FIND) == 0) {
