@@ -1,6 +1,7 @@
 #include <sys/socket.h>
 
-void ping(int sd){
+int ping(int sd){
 	char buffer[] = "pong";
 	send(sd, (void*)buffer, sizeof(buffer), 0);
+	return 0;
 }

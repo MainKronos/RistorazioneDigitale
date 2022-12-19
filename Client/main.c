@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,17 +12,19 @@
 #include "header.h"
 
 /* Mostra i dettagli dei comandi */
-void help(void);
+int help(void);
 
 /* Ricerca la disponibilità per una prenotazione */
-void find(int sd);
+int find(int sd);
 
 /* Invia una prenotazione */
-void book(int sd);
+int book(int sd);
 
 int main(int argc, char *argv[]){
 
 	/* --- Variabili --------------------------------------------------------------- */
+	fd_set master; /* Set principale */
+	fd_set read_fds; /* Set di lettura gestito dalla select */
 	struct sockaddr_in sv_addr; /* Indirizzo server */
 	int sd; /* Descrittore Socket */
 	int ret; /* Valore di ritorno */
@@ -33,6 +36,10 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 	/* --- Setup ------------------------------------------------------------------- */
+	
+	FD_ZERO(&master);
+	FD_ZERO(&read_fds);
+	
 	/* Creazione socket */
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -48,52 +55,76 @@ int main(int argc, char *argv[]){
 		perror("Errore in fase di connessione: \n");
 		exit(-1);
 	}
+
+	/* Aggiungo lo stdin al set principale */
+	FD_SET(STDIN_FILENO, &master);
+
+	/* Aggiungo il socket al set principale */
+	FD_SET(sd, &master);
 	/* ----------------------------------------------------------------------------- */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 	while(1){
-		cmd command; /* Comando selezionato */
-
 		printf("\033[H\033[J"); /* Pulizia schermo */
 		printf("***************************** CLIENT *****************************\n");
 		printf("Digita un comando: \033[s\n"); 
 		printf("\n");
-		printf("1) help		--> mostra i dettagli dei comandi\n");
-		printf("2) find		--> ricerca la disponibilità per una prenotazione\n");
-		printf("3) book		--> invia una prenotazione\n");
-		printf("4) esc		--> termina il client\n");
+		printf("> help		--> mostra i dettagli dei comandi\n");
+		printf("> find		--> ricerca la disponibilità per una prenotazione\n");
+		printf("> book		--> invia una prenotazione\n");
+		printf("> esc		--> termina il client\n");
 		printf("\033[u");
+		fflush(stdout);
 
-		ret = scanf("%s", command);
+		/* Copio il set master in read_fds */
+		read_fds = master;
 
-		if(ret > 0){
-			if(strcmp(command, "help") == 0){
-				help();
-			}
-			else if(strcmp(command, "find") == 0){
-				find(sd);
-			}
-			else if(strcmp(command, "book") == 0){
-				book(sd);
-			}
-			else if(strcmp(command, "esc") == 0){
-				printf("\033[H\033[J"); /* Pulizia schermo */
-				break;
-			}
+		/* Attendo un evento */
+		ret = select(sd+1, &read_fds, NULL, NULL, NULL);
+		if (ret < 0){
+			perror("Errore in fase di select: ");
+			exit(-1);
 		}
-		scanf("%*c");
-		fflush(stdin);
+
+		/* Controllo se è arrivato qualcosa sullo stdin */
+		if(FD_ISSET(STDIN_FILENO, &read_fds)){
+			cmd command; /* Comando selezionato */
+
+			ret = scanf("%s", command);
+
+			if(ret > 0){
+				if(strcmp(command, "help") == 0){
+					if(help()) break;
+				}
+				else if(strcmp(command, "find") == 0){
+					if(find(sd)) break;
+				}
+				else if(strcmp(command, "book") == 0){
+					if(book(sd)) break;
+				}
+				else if(strcmp(command, "esc") == 0){
+					break;
+				}
+			}
+			scanf("%*c");
+			fflush(stdin);
+		}else if(FD_ISSET(sd, &read_fds)){
+			/* Se è arrivato qualcosa dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
+			break;
+		}
 
 	}
 	/* ----------------------------------------------------------------------------- */
 
+	printf("\033[H\033[J"); /* Pulizia schermo */
 	/* Chiusura collegamento */
 	close(sd);
+	printf("Client scollegato.\n");
 
 	return 0;
 }
 
-void help(void){
+int help(void){
 	printf("\033[H\033[J"); /* Pulizia schermo */
 	printf("\033[1m\033[4m\033[34mfind\033[0m \033[34mcognome persone data ora\033[0m\n");
 	printf("Invia una richiesta di disponibilità dove la data è espressa in formato GG-MM-AA e l'ora come HH.\n");
@@ -105,9 +136,10 @@ void help(void){
 	printf("Termina il client\n");
 	printf("\nPremi INVIO per continuare...");
 	getchar();
+	return 0;
 }
 
-void find(int sd){
+int find(int sd){
 	int ret; /* Valore di ritorno */
 	int i; /* Indice */
 	struct tm datetime; /* Variabile temporanea per contenere la data e l'ora */
@@ -133,11 +165,7 @@ void find(int sd){
 	if(difftime(p.datetime, time(NULL)) > 0){
 
 		/* Richiesta menù */
-		ret = send(sd, CL_FIND, sizeof(CL_FIND), 0); /* Invio richiesta del menu */
-		if(ret < 0){
-			perror("Errore in fase di richiesta del menù: \n");
-			exit(-1);
-		}
+		send(sd, CL_FIND, sizeof(CL_FIND), 0); /* Invio richiesta del menu */
 
 		/* Invio prenotazione */
 		send(sd, p.cognome, sizeof(p.cognome), 0);
@@ -147,7 +175,11 @@ void find(int sd){
 		send(sd, &timestamp, sizeof(timestamp), 0);
 
 		/* Ricezione numero tavoli */
-		recv(sd, &n, sizeof(n), 0);
+		ret = recv(sd, &n, sizeof(n), 0);
+		if(ret<=0){
+			if(ret<0) perror("find: ");
+			return -1;
+		}
 		n = ntohs(n);
 
 		if(n == 0){
@@ -156,9 +188,21 @@ void find(int sd){
 		else{
 			printf("Tavoli disponibili:\n");
 			for(i = 0; i < (int)n; i++){
-				recv(sd, &t.id, sizeof(t.id), 0);
-				recv(sd, &t.sala, sizeof(t.sala), 0);
-				recv(sd, t.ubicazione, sizeof(t.ubicazione), 0);
+				ret = recv(sd, &t.id, sizeof(t.id), 0);
+				if(ret<=0){
+					if(ret<0) perror("find: ");
+					return -1;
+				}
+				ret = recv(sd, &t.sala, sizeof(t.sala), 0);
+				if(ret<=0){
+					if(ret<0) perror("find: ");
+					return -1;
+				}
+				ret = recv(sd, t.ubicazione, sizeof(t.ubicazione), 0);
+				if(ret<=0){
+					if(ret<0) perror("find: ");
+					return -1;
+				}
 
 				printf("%d) T%-5d SALA%-5d %s\n", i, t.id, t.sala, t.ubicazione);
 			}
@@ -169,9 +213,10 @@ void find(int sd){
 
 	printf("\nPremi INVIO per continuare...");
 	getchar(); 
+	return 0;
 }
 
-void book(int sd){
+int book(int sd){
 	int ret; /* Valore di ritorno */
 	len choice; /* Scelta dell'utente */
 	response r; /* Risposta dal server */
@@ -181,19 +226,20 @@ void book(int sd){
 
 	/* Invio scelta */
 	/* Richiesta menù */
-	ret = send(sd, CL_BOOK, sizeof(CL_BOOK), 0); /* Invio richiesta prenotazione tavolo */
-	if(ret < 0){
-		perror("Errore in fase di invio della selezione tavolo: \n");
-		exit(-1);
-	}
+	send(sd, CL_BOOK, sizeof(CL_BOOK), 0); /* Invio richiesta prenotazione tavolo */
 
 	choice = htonl(choice);
 	send(sd, &choice, sizeof(choice), 0); /* Invio scelta */
 
 	/* Ricezione conferma */
-	recv(sd, r, sizeof(r), 0);
+	ret = recv(sd, r, sizeof(r), 0);
+	if(ret<=0){
+		if(ret<0) perror("book: ");
+		return -1;
+	}
 	printf("%s\n", r);
 
 	printf("\nPremi INVIO per continuare...");
 	getchar(); 
+	return 0;
 }

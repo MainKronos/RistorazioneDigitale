@@ -1,5 +1,5 @@
-#ifndef server
-#define server
+#ifndef server_header
+#define server_header
 
 #include "header.h"
 
@@ -19,6 +19,12 @@ struct pre_sosp{
 	struct pre_sosp* next; /* Puntatore al prossimo elemento */
 };
 
+/* Stato */
+enum state {
+	OFF, /* Spento */
+	ON /* Acceso */
+};
+
 /* --- Variabili Globali --------------------------------------------------------------- */
 
 struct piatto menu[N_PIATTI]; /* Menu */
@@ -27,19 +33,25 @@ struct tavolo tavoli[N_TAVOLI]; /* Tavoli */
 struct pre_sosp* prenotazioni_sospese; /* Prenotazioni in sospeso */
 pthread_mutex_t mutex_prenotazioni_sospese; /* Mutex per la gestione delle prenotazioni in sospeso */
 
+enum state server; /* Stato del server */
+
+/* --- Comandi Server -------------------------------------------------------------------- */
+
+const cmd SV_STOP = "stop"; /* Termina il server */
+
 /* --- Gestione Comandi ------------------------------------------------------------------ */
 
 /* Risponde al ping */
-void ping(int sd);
+int ping(int sd);
 
 /* Invia il menù al TableDevice */
-void td_menu(int sd);
+int td_menu(int sd);
 
 /* Invia le disponibilità dei tavoli al Client*/
-void cl_find(int sd);
+int cl_find(int sd);
 
 /* Prenota un tavolo */
-void cl_book(int sd);
+int cl_book(int sd);
 
 /* --- Funzioni di supporto ------------------- */
 

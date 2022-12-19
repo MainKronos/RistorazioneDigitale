@@ -1,12 +1,13 @@
 #include <sys/socket.h>
 
 #include "header.h"
-#include "../server.h"
+#include "../main.h"
 
-void cl_book(int sd){
+int cl_book(int sd){
 	struct pre_sosp* p_sosp = NULL; /* Prenotazione in sospeso */
 	len choice; /* Tavolo scelto dall'utente */
 	response r; /* Risposta da inviare al client per la conferma della registrazione */
+	int ret; /* Valore di ritorno */
 
 	struct sockaddr_in cl_addr; /* Indirizzo client */
 	socklen_t addrlen = sizeof(cl_addr);
@@ -16,7 +17,11 @@ void cl_book(int sd){
 	
 
 	/* Ricezione tavolo scelto */
-	recv(sd, &choice, sizeof(choice), 0);
+	ret = recv(sd, &choice, sizeof(choice), 0);
+	if(ret<=0){
+		if(ret<0) perror("cl_book: ");
+		return -1;
+	}
 	choice = ntohl(choice);
 
 	if(p_sosp == NULL){
@@ -44,4 +49,5 @@ void cl_book(int sd){
 		}
 	}
 	send(sd, r, sizeof(r), 0);
+	return 0;
 }

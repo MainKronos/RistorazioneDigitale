@@ -1,9 +1,9 @@
 #include <sys/socket.h>
 
 #include "header.h"
-#include "../server.h"
+#include "../main.h"
 
-void td_menu(int sd){
+int td_menu(int sd){
 	len nlen; /* Variabile temporanea per il trasferimento*/
 	unsigned int i; /* Indice */
 
@@ -24,4 +24,6 @@ void td_menu(int sd){
 	}
 
 	printf("Menu inviato a %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
+
+	return 0;
 }

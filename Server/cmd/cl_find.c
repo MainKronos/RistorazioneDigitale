@@ -1,12 +1,13 @@
 #include <sys/socket.h>
 
 #include "header.h"
-#include "../server.h"
+#include "../main.h"
 
-void cl_find(int sd){
+int cl_find(int sd){
 	struct pre_sosp* p_sosp = NULL; /* Prenotazione in sospeso */
 	len tmp; /* Variabile temporanea per il trasferimento*/
 	int i; /* Indice */
+	int ret; /* Valore di ritorno */
 
 	struct sockaddr_in cl_addr; /* Indirizzo client */
 	socklen_t addrlen = sizeof(cl_addr);
@@ -29,12 +30,26 @@ void cl_find(int sd){
 	p_sosp->sd = sd; /* Salvataggio descrittore socket */
 	insertPrenotazioneSospesa(p_sosp); /* Inserimento prenotazione in sospeso */
 
-	/* Ricezione prenotazione */
-	recv(sd, p_sosp->p->cognome, sizeof(p_sosp->p->cognome), 0);
-	recv(sd, &p_sosp->p->n_persone, sizeof(p_sosp->p->n_persone), 0);
+	/* Ricezione prenotazione ----------------------------------------------- */
+	ret = recv(sd, p_sosp->p->cognome, sizeof(p_sosp->p->cognome), 0);
+	if(ret<=0){
+		if(ret<0) perror("cl_find: ");
+		return -1;
+	}
+	ret = recv(sd, &p_sosp->p->n_persone, sizeof(p_sosp->p->n_persone), 0);
+	if(ret<=0){
+		if(ret<0) perror("cl_find: ");
+		return -1;
+	}
 	p_sosp->p->n_persone = ntohs(p_sosp->p->n_persone);
 	recv(sd, &p_sosp->p->datetime, sizeof(p_sosp->p->datetime), 0);
+	if(ret<=0){
+		if(ret<0) perror("cl_find: ");
+		return -1;
+	}
 	p_sosp->p->datetime = ntohl(p_sosp->p->datetime);
+
+	/* ---------------------------------------------------------------------- */
 
 	/* Ricerca tavoli liberi */
 	p_sosp->nlen = 0;
@@ -55,5 +70,5 @@ void cl_find(int sd){
 		send(sd, &p_sosp->t[i]->sala, sizeof(p_sosp->t[i]->sala), 0);
 		send(sd, p_sosp->t[i]->ubicazione, sizeof(p_sosp->t[i]->ubicazione), 0);
 	}
-	
+	return 0;
 }

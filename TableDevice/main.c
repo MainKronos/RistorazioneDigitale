@@ -55,10 +55,10 @@ int main(int argc, char *argv[]){
 		printf("***************************** BENVENUTO *****************************\n");
 		printf("Digita un comando: \033[s\n"); 
 		printf("\n");
-		printf("1) help			--> mostra i dettagli dei comandi\n");
-		printf("2) menu			--> mostra il menu dei piatti\n");
-		printf("3) comanda		--> invia una comanda\n");
-		printf("4) conto		--> chiede il conto\n");
+		printf("> help		--> mostra i dettagli dei comandi\n");
+		printf("> menu		--> mostra il menu dei piatti\n");
+		printf("> comanda	--> invia una comanda\n");
+		printf("> conto		--> chiede il conto\n");
 		printf("\033[u");
 
 		ret = scanf("%s", command);
