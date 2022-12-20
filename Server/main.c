@@ -77,14 +77,19 @@ int main(int argc, char *argv[]){
 
 	/* --- Init -------------------------------------------------------------------- */
 
-	/* Inizializzo il menù */
+	/* Inizzializzazione menù */
 	initMenu();
 
-	/* Inizializzo i tavoli */
+	/* Inizzializzazione tavoli */
 	initTavoli();
 
-	/* Accendo il server */
-	server = ON;
+	/* Inizzializzazione comande */
+	comande = NULL;
+	pthread_mutex_init(&mutex_comande, NULL);
+
+	/* Inizzializzazione prenotazioni sospese */
+	prenotazioni_sospese = NULL;
+	pthread_mutex_init(&mutex_prenotazioni_sospese, NULL);
 
 	printf("\033[H\033[J"); /* Pulizia schermo */
 	
@@ -92,7 +97,7 @@ int main(int argc, char *argv[]){
 	printf("Server in ascolto sulla porta %d\n", atoi(argv[1]));
 
 	/* --- Ciclo principale -------------------------------------------------------- */
-	while(server == ON) {
+	while(1) {
 
 		/* Copio il set master in read_fds */
 		read_fds = master;
@@ -129,7 +134,7 @@ int main(int argc, char *argv[]){
 			if(strcmp(command, SV_STOP) == 0){
 
 				/* Spegnimento server */
-				server = OFF;
+				break;
 			}
 		}		
 	}
@@ -153,7 +158,7 @@ void* socketHandler(void* arg) {
 	addrlen = sizeof(cl_addr);
 	getpeername(sd, (struct sockaddr *)&cl_addr, &addrlen);
 
-	while(server == ON){
+	while(1){
 		/* Gestione dati in arrivo da un client */
 		ret = recv(sd, command, sizeof(command), 0);
 		if (ret <= 0){
@@ -170,6 +175,8 @@ void* socketHandler(void* arg) {
 				if(td_getid(sd)) break;
 			}else if(strcmp(command, TD_MENU) == 0) {
 				if(td_menu(sd)) break;
+			}else if(strcmp(command, TD_COMANDA) == 0) {
+				if(td_comanda(sd)) break;
 			}else if(strcmp(command, CL_FIND) == 0) {
 				if(cl_find(sd)) break;
 			}else if(strcmp(command, CL_BOOK) == 0) {
@@ -181,6 +188,12 @@ void* socketHandler(void* arg) {
 	/* Connessione chiusa */
 	printf("Connessione chiusa da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
 	close(sd);
+
+	/* Rimuovo la possibile prenotazione sospesa nel caso in cui ce ne fosse una */
+	removePrenotazioneSospesa(sd);
+
+	/* Disconnetto il tavolo se collegato */
+	disconnectTable(sd);
 
 	free(arg);
 	pthread_exit(NULL);

@@ -54,6 +54,9 @@ const cmd TD_GETID = "getid";
 /* Richiesta menu dal TableDevice */
 const cmd TD_MENU = "menu";
 
+/* Richiesta comanda dal TableDevice */
+const cmd TD_COMANDA = "comanda";
+
 /* Ricerca disponibilità prenotazione per il Client */
 const cmd CL_FIND = "find";
 

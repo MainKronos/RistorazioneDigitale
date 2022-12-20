@@ -221,23 +221,54 @@ void insertPrenotazioneSospesa(struct pre_sosp* p_sosp){
 	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
 }
 
-int connectTable(int sd, tavolo_id* id){
+int connectTable(int sd, struct tavolo_sv** t){
 	int i; /* Indice */
-	int ret; /* Valore di ritorno */
 
-	ret = -1;
 	for(i=0; i<N_TAVOLI; i++){
 		pthread_mutex_lock(&tavoli[i].mutex);
 		if(tavoli[i].sd == -1){
 			tavoli[i].sd = sd;
-			*id = tavoli[i].inf.id;
-			ret = 0;
+			*t = &tavoli[i];
 			pthread_mutex_unlock(&tavoli[i].mutex);
-			break;
+			return 0;
 		}else{
 			pthread_mutex_unlock(&tavoli[i].mutex);
 		}
 	}
 
-	return ret;
+	return -1;
+}
+
+int getTable(int sd, struct tavolo_sv** t){
+	int i; /* Indice */
+
+	for(i=0; i<N_TAVOLI; i++){
+		pthread_mutex_lock(&tavoli[i].mutex);
+		if(tavoli[i].sd == sd){
+			*t = &tavoli[i];
+			pthread_mutex_unlock(&tavoli[i].mutex);
+			return 0;
+		}else{
+			pthread_mutex_unlock(&tavoli[i].mutex);
+		}
+	}
+
+	return -1;
+}
+
+int disconnectTable(int sd){
+	int i; /* Indice */
+
+	for(i=0; i<N_TAVOLI; i++){
+		pthread_mutex_lock(&tavoli[i].mutex);
+		if(tavoli[i].sd == sd){
+			tavoli[i].sd = -1;
+			pthread_mutex_unlock(&tavoli[i].mutex);
+			return 0;
+		}else{
+			pthread_mutex_unlock(&tavoli[i].mutex);
+		}
+	}
+
+	return -1;
 }

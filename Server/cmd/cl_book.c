@@ -15,7 +15,6 @@ int cl_book(int sd){
 
 	p_sosp = findPrenotazioneSospesa(sd); /* Ricerca prenotazione in sospeso */
 	
-
 	/* Ricezione tavolo scelto */
 	ret = recv(sd, &choice, sizeof(choice), 0);
 	if(ret<=0){
@@ -23,6 +22,8 @@ int cl_book(int sd){
 		return -1;
 	}
 	choice = ntohl(choice);
+
+	memset(r, 0, sizeof(r)); /* Pulizia buffer */
 
 	if(p_sosp == NULL){
 		/* Nessuna prenotazione in sospeso */

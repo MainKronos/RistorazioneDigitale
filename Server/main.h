@@ -46,10 +46,14 @@ struct pre_sosp{
 	struct pre_sosp* next; /* Puntatore al prossimo elemento */
 };
 
-/* Stato */
-enum state {
-	OFF, /* Spento */
-	ON /* Acceso */
+/* informazioni comanda */
+struct comanda{
+	len nlen; /* Numero di piatti */
+	struct piatto* p[N_PIATTI]; /* Vettore di puntatori ai piatti */
+	len q[N_PIATTI]; /* Vettore delle quantità */
+	struct tavolo_sv* t; /* Puntatore al tavolo di provenienza della comanda */
+
+	struct comanda* next; /* Puntatore al prossimo elemento */
 };
 
 /* --- Variabili Globali --------------------------------------------------------------- */
@@ -57,10 +61,12 @@ enum state {
 struct piatto menu[N_PIATTI]; /* Menu */
 struct tavolo_sv tavoli[N_TAVOLI]; /* Tavoli */
 
+struct comanda* comande; /* Lista delle comande */
+pthread_mutex_t mutex_comande; /* Mutex per la gestione della lista delle comande */
+
 struct pre_sosp* prenotazioni_sospese; /* Prenotazioni in sospeso */
 pthread_mutex_t mutex_prenotazioni_sospese; /* Mutex per la gestione delle prenotazioni in sospeso */
 
-enum state server; /* Stato del server */
 
 /* --- Comandi Server -------------------------------------------------------------------- */
 
@@ -76,6 +82,9 @@ int td_getid(int);
 
 /* Invia il menù al TableDevice */
 int td_menu(int);
+
+/* Receve la comanda dal TableDevice */
+int td_comanda(int);
 
 /* Invia le disponibilità dei tavoli al Client*/
 int cl_find(int);
@@ -97,7 +106,7 @@ int bookSlot(struct tavolo_sv*, struct prenotazione_sv*);
 /* Cerca se è disponibile un posto per un tavolo per una prenotazione */
 int findSlot(struct tavolo_sv*, struct prenotazione_sv);
 
-/* Ricerca prenotazione in sospeso */
+/* Ricerca prenotazione in sospeso, se ritorna NULL vuol dire che non ha trovato nulla */
 struct pre_sosp* findPrenotazioneSospesa(int);
 
 /* Rimozione prenotazione in sospeso */
@@ -109,13 +118,20 @@ void insertPrenotazioneSospesa(struct pre_sosp*);
 /* Connette il socket del TableDevice ad un tavolo libero, 
 se ne viene trovato uno libero associa il socket al tavolo 
 e ritorna 0, altrimenti -1 */
-int connectTable(int, tavolo_id*);
+int connectTable(int, struct tavolo_sv**);
+
+/* Disconnette il socket del TableDevice dal tavolo */
+int disconnectTable(int);
+
+/* Ritorna il tavolo associato al socket del TableDevice */
+int getTable(int, struct tavolo_sv**);
 
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 
 #include "cmd/ping.c"
 #include "cmd/td_getid.c"
 #include "cmd/td_menu.c"
+#include "cmd/td_comanda.c"
 #include "cmd/cl_book.c"
 #include "cmd/cl_find.c"
 
