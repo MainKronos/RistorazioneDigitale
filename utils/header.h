@@ -18,6 +18,7 @@ typedef uint32_t len;
 /* Risposta del server */
 typedef char response[1024]; 
 
+/* Identificativo del tavolo */
 typedef uint32_t tavolo_id;
 
 /* Informazioni sul tavolo */

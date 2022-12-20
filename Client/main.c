@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
 		/* Attendo un evento */
 		ret = select(sd+1, &read_fds, NULL, NULL, NULL);
 		if (ret < 0){
-			perror("Errore in fase di select: ");
+			perror("Errore in fase di select");
 			exit(-1);
 		}
 
@@ -176,7 +176,7 @@ int find(int sd){
 		/* Ricezione numero tavoli */
 		ret = recv(sd, &n, sizeof(n), 0);
 		if(ret<=0){
-			if(ret<0) perror("find: ");
+			if(ret<0) perror("find");
 			return -1;
 		}
 		n = ntohs(n);
@@ -189,17 +189,17 @@ int find(int sd){
 			for(i = 0; i < (int)n; i++){
 				ret = recv(sd, &t.id, sizeof(t.id), 0);
 				if(ret<=0){
-					if(ret<0) perror("find: ");
+					if(ret<0) perror("find");
 					return -1;
 				}
 				ret = recv(sd, &t.sala, sizeof(t.sala), 0);
 				if(ret<=0){
-					if(ret<0) perror("find: ");
+					if(ret<0) perror("find");
 					return -1;
 				}
 				ret = recv(sd, t.ubicazione, sizeof(t.ubicazione), 0);
 				if(ret<=0){
-					if(ret<0) perror("find: ");
+					if(ret<0) perror("find");
 					return -1;
 				}
 
@@ -233,7 +233,7 @@ int book(int sd){
 	/* Ricezione conferma */
 	ret = recv(sd, r, sizeof(r), 0);
 	if(ret<=0){
-		if(ret<0) perror("book: ");
+		if(ret<0) perror("book");
 		return -1;
 	}
 	printf("%s\n", r);

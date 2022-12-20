@@ -13,14 +13,22 @@ int td_menu(int sd){
 
 	/* Invio il numero di elementi */
 	nlen = htonl(N_PIATTI);
-	send(sd, (void*)&nlen, sizeof(nlen), 0);
+	if(send(sd, (void*)&nlen, sizeof(nlen), 0) < 0){
+		perror("td_menu");
+		return -1;
+	}
 	
 	/* Invio del menu */
 	for(i=0; i<N_PIATTI; i++){
 		uint32_t tmp = htonl(menu[i].prezzo);
-		send(sd, (void*)&menu[i].code, sizeof(menu[i].code), 0);
-		send(sd, (void*)&menu[i].nome, sizeof(menu[i].nome), 0);
-		send(sd, (void*)&tmp, sizeof(tmp), 0);
+		if(
+			send(sd, (void*)&menu[i].code, sizeof(menu[i].code), 0) < 0 ||
+			send(sd, (void*)&menu[i].nome, sizeof(menu[i].nome), 0) < 0 ||
+			send(sd, (void*)&tmp, sizeof(tmp), 0) < 0
+		){
+			perror("td_menu");
+			return -1;
+		}
 	}
 
 	printf("Menu inviato a %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));

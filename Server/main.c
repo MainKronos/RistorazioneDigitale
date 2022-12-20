@@ -53,14 +53,14 @@ int main(int argc, char *argv[]){
 	/* Aggancio del socket all'indirizzo */
 	ret = bind(listener, (struct sockaddr *)&sv_addr, sizeof(sv_addr));
 	if (ret < 0){
-		perror("Errore in fase di bind: ");
+		perror("Errore in fase di bind");
 		exit(-1);
 	}
 
 	/* Inizio dell'ascolto, coda da 10 connessioni */
 	ret = listen(listener, 10);
 	if (ret < 0){
-		perror("Errore in fase di listen: ");
+		perror("Errore in fase di listen");
 		exit(-1);
 	}
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){
 		/* Attendo un evento */
 		ret = select(fdmax+1, &read_fds, NULL, NULL, NULL);
 		if (ret < 0){
-			perror("Errore in fase di select: ");
+			perror("Errore in fase di select");
 			exit(-1);
 		}
 
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]){
 			sock = malloc(sizeof(int));
 			*sock = accept(listener, (struct sockaddr *)&cl_addr, &addrlen);
 			if (*sock < 0){
-				perror("Errore in fase di accept: ");
+				perror("Errore in fase di accept");
 				exit(-1);
 			}
 			printf("Nuova connessione da %s:%d\n", inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
@@ -156,11 +156,9 @@ void* socketHandler(void* arg) {
 	while(server == ON){
 		/* Gestione dati in arrivo da un client */
 		ret = recv(sd, command, sizeof(command), 0);
-		if (ret < 0){
-			perror("Errore in fase di accettazione comando: ");
-			exit(-1);
-		} else if(ret == 0) {		
-			break; 
+		if (ret <= 0){
+			if (ret < 0) perror("Errore in fase di accettazione comando");
+			break;
 		} else if(ret > 0) {
 			/* Dati ricevuti */
 			printf("Comando %.*s ricevuto da %s:%d\n", (int)sizeof(command), command, inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));

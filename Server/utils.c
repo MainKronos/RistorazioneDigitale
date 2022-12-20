@@ -46,64 +46,74 @@ void initMenu(void){
 void initTavoli(void){
 	memset(tavoli, 0, sizeof(tavoli)); /* Pulizia della struttura */
 
-	tavoli[0].inf.id = 1;
+	tavoli[0].inf.id = 0;
 	tavoli[0].inf.n_posti = 4;
 	tavoli[0].inf.sala = 1;
 	strcpy(tavoli[0].inf.ubicazione, "FINESTRA");
+	tavoli[0].sd = -1;
 	pthread_mutex_init(&tavoli[0].mutex, NULL);
 
-	tavoli[1].inf.id = 2;
+	tavoli[1].inf.id = 1;
 	tavoli[1].inf.n_posti = 4;
 	tavoli[1].inf.sala = 1;
 	strcpy(tavoli[1].inf.ubicazione, "CAMINO");
+	tavoli[1].sd = -1;
 	pthread_mutex_init(&tavoli[1].mutex, NULL);
 
-	tavoli[2].inf.id = 3;
+	tavoli[2].inf.id = 2;
 	tavoli[2].inf.n_posti = 6;
 	tavoli[2].inf.sala = 2;
 	strcpy(tavoli[2].inf.ubicazione, "INGRESSO");
+	tavoli[2].sd = -1;
 	pthread_mutex_init(&tavoli[2].mutex, NULL);
 
-	tavoli[3].inf.id = 4;
+	tavoli[3].inf.id = 3;
 	tavoli[3].inf.n_posti = 6;
 	tavoli[3].inf.sala = 2;
 	strcpy(tavoli[3].inf.ubicazione, "CAMINO");
+	tavoli[3].sd = -1;
 	pthread_mutex_init(&tavoli[3].mutex, NULL);
 
-	tavoli[4].inf.id = 5;
+	tavoli[4].inf.id = 4;
 	tavoli[4].inf.n_posti = 8;
 	tavoli[4].inf.sala = 3;
 	strcpy(tavoli[4].inf.ubicazione, "FINESTRA");
+	tavoli[4].sd = -1;
 	pthread_mutex_init(&tavoli[4].mutex, NULL);
 
-	tavoli[5].inf.id = 6;
+	tavoli[5].inf.id = 5;
 	tavoli[5].inf.n_posti = 8;
 	tavoli[5].inf.sala = 3;
 	strcpy(tavoli[5].inf.ubicazione, "CAMINO");
+	tavoli[5].sd = -1;
 	pthread_mutex_init(&tavoli[5].mutex, NULL);
 
-	tavoli[6].inf.id = 7;
+	tavoli[6].inf.id = 6;
 	tavoli[6].inf.n_posti = 10;
 	tavoli[6].inf.sala = 4;
 	strcpy(tavoli[6].inf.ubicazione, "INGRESSO");
+	tavoli[6].sd = -1;
 	pthread_mutex_init(&tavoli[6].mutex, NULL);
 
-	tavoli[7].inf.id = 8;
+	tavoli[7].inf.id = 7;
 	tavoli[7].inf.n_posti = 10;
 	tavoli[7].inf.sala = 4;
 	strcpy(tavoli[7].inf.ubicazione, "CAMINO");
+	tavoli[7].sd = -1;
 	pthread_mutex_init(&tavoli[7].mutex, NULL);
 
-	tavoli[8].inf.id = 9;
+	tavoli[8].inf.id = 8;
 	tavoli[8].inf.n_posti = 12;
 	tavoli[8].inf.sala = 5;
 	strcpy(tavoli[8].inf.ubicazione, "FINESTRA");
+	tavoli[8].sd = -1;
 	pthread_mutex_init(&tavoli[8].mutex, NULL);
 
-	tavoli[9].inf.id = 10;
+	tavoli[9].inf.id = 9;
 	tavoli[9].inf.n_posti = 12;
 	tavoli[9].inf.sala = 5;
 	strcpy(tavoli[9].inf.ubicazione, "CAMINO");
+	tavoli[9].sd = -1;
 	pthread_mutex_init(&tavoli[9].mutex, NULL);
 }
 
@@ -209,4 +219,25 @@ void insertPrenotazioneSospesa(struct pre_sosp* p_sosp){
 	}
 
 	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
+}
+
+int connectTable(int sd, tavolo_id* id){
+	int i; /* Indice */
+	int ret; /* Valore di ritorno */
+
+	ret = -1;
+	for(i=0; i<N_TAVOLI; i++){
+		pthread_mutex_lock(&tavoli[i].mutex);
+		if(tavoli[i].sd == -1){
+			tavoli[i].sd = sd;
+			*id = tavoli[i].inf.id;
+			ret = 0;
+			pthread_mutex_unlock(&tavoli[i].mutex);
+			break;
+		}else{
+			pthread_mutex_unlock(&tavoli[i].mutex);
+		}
+	}
+
+	return ret;
 }

@@ -19,7 +19,7 @@ int cl_book(int sd){
 	/* Ricezione tavolo scelto */
 	ret = recv(sd, &choice, sizeof(choice), 0);
 	if(ret<=0){
-		if(ret<0) perror("cl_book: ");
+		if(ret<0) perror("cl_book");
 		return -1;
 	}
 	choice = ntohl(choice);
@@ -48,6 +48,9 @@ int cl_book(int sd){
 			}
 		}
 	}
-	send(sd, r, sizeof(r), 0);
+	if(send(sd, r, sizeof(r), 0) < 0){
+		perror("cl_book");
+		return -1;
+	}
 	return 0;
 }

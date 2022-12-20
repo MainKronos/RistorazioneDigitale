@@ -16,6 +16,7 @@ struct tavolo_sv {
 
 	/* Informazioni aggiuntive del server */
 
+	int sd; /* Socket del TableDevice collegato al tavolo */
 	struct pre_list* prenotazioni; /* Lista delle prenotazioni di questo tavolo */
 	pthread_mutex_t mutex; /* Mutex per la gestione della lista delle prenotazioni */
 };
@@ -38,7 +39,7 @@ struct prenotazione_sv{
 
 /* Prenotazione in sospeso */
 struct pre_sosp{
-	int sd; /* Descrittore socket */
+	int sd; /* Socket del Client collegato alla prenotazione in sospeso */
 	struct prenotazione_sv* p; /* Prenotazione da ricevere */
 	struct tavolo_sv* t[N_TAVOLI]; /* Tavoli liberi trovati */
 	len nlen; /* numero di tavoli liberi trovati */
@@ -104,6 +105,11 @@ void removePrenotazioneSospesa(int);
 
 /* Inserimento prenotazione in sospeso */
 void insertPrenotazioneSospesa(struct pre_sosp*);
+
+/* Connette il socket del TableDevice ad un tavolo libero, 
+se ne viene trovato uno libero associa il socket al tavolo 
+e ritorna 0, altrimenti -1 */
+int connectTable(int, tavolo_id*);
 
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 
