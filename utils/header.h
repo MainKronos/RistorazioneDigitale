@@ -16,10 +16,13 @@ typedef char type[3];
 typedef uint32_t len; 
 
 /* Risposta del server */
-typedef char response[1024]; 
+typedef char response[2048]; 
 
 /* Identificativo del tavolo */
 typedef uint32_t tavolo_id;
+
+/* Codice di sblocco del tavolo */
+typedef uint32_t unlock_code; 
 
 /* Informazioni sul tavolo */
 struct tavolo{
@@ -50,6 +53,9 @@ const cmd PING = "ping";
 
 /* Richiesta dell'ID del tavolo dal TableDevice */
 const cmd TD_GETID = "getid"; 
+
+/* Richiesta di sblocco del TableDevice */
+const cmd TD_UNLOCK = "unlock"; 
 
 /* Richiesta menu dal TableDevice */
 const cmd TD_MENU = "menu";

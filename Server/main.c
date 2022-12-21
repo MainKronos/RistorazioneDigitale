@@ -173,6 +173,8 @@ void* socketHandler(void* arg) {
 				if(ping(sd)) break;
 			}else if(strcmp(command, TD_GETID) == 0){
 				if(td_getid(sd)) break;
+			}else if(strcmp(command, TD_UNLOCK) == 0){
+				if(td_unlock(sd)) break;
 			}else if(strcmp(command, TD_MENU) == 0) {
 				if(td_menu(sd)) break;
 			}else if(strcmp(command, TD_COMANDA) == 0) {

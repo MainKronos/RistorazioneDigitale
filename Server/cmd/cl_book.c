@@ -1,4 +1,6 @@
 #include <sys/socket.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "header.h"
 #include "../main.h"
@@ -33,14 +35,22 @@ int cl_book(int sd){
 			/* Tavolo scelto non valido */
 			strcpy(r, "Tavolo scelto non valido.");
 		}else{
+			struct prenotazione_sv* p; /* Prenotazione */
 
-			p_sosp->p->tavolo = p_sosp->t[choice];
-			p_sosp->p->timestamp = time(NULL);
+			p = p_sosp->p;
+
+			p->code = (unlock_code)p->inf.datetime;
+			p->tavolo = p_sosp->t[choice];
+			p->timestamp = time(NULL);
 			
 			/* Prenotazione tavolo */
-			if(bookSlot(p_sosp->t[choice], p_sosp->p)){
-				strcpy(r, "Prenotazione effettuata con successo.");
-				printf("Prenotazione di %d posti del tavolo %d a nome %s per il %.24s effettuata per il client %s:%d\n", p_sosp->p->inf.n_persone, p_sosp->p->tavolo->inf.id, p_sosp->p->inf.cognome, ctime(&p_sosp->p->inf.datetime), inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
+			if(bookSlot(p_sosp->t[choice], p)){
+				char datetime[1024]; /* Buffer per il tempo */
+
+				strftime(datetime, sizeof(datetime), "%d/%m/%Y %H:%M:%S", localtime(&p->inf.datetime));
+
+				sprintf(r, "Prenotazione effettuata con successo.\nNome: %s\nTavolo: T%d\nNumero persone: %d\nData: %s\nCodice di sblocco: %x", p->inf.cognome, p->tavolo->inf.id, p->inf.n_persone, datetime, p->code);
+				printf("Prenotazione di %d posti del tavolo %d a nome %s per il %s effettuata per il client %s:%d\n", p->inf.n_persone, p->tavolo->inf.id, p->inf.cognome, datetime, inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
 			
 				/* Rimozione prenotazione in sospeso */
 				removePrenotazioneSospesa(sd);

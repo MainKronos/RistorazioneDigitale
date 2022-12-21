@@ -67,7 +67,7 @@ int td_comanda(int sd){
 				break;
 			}
 		}
-		/* Se tutti i codici dei piatti sono stati rovati */
+		/* Se tutti i codici dei piatti sono stati trovati */
 		if(ret != -1){ 
 
 			/* Inserimento comanda nella lista */

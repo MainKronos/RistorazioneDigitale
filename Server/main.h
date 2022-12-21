@@ -33,6 +33,7 @@ struct prenotazione_sv{
 
 	/* Informazioni aggiuntive del server */
 
+	unlock_code code; /* Codice di sblocco del tavolo */
 	struct tavolo_sv* tavolo; /* Tavolo prenotato */
 	time_t timestamp; /* Timestamp del momento della finalizzazione della prenotazione */
 };
@@ -79,6 +80,9 @@ int ping(int);
 
 /* Invia l'id del tavolo al TableDevice */
 int td_getid(int);
+
+/* Sblocca il tavolo */
+int td_unlock(int);
 
 /* Invia il menù al TableDevice */
 int td_menu(int);
@@ -130,6 +134,7 @@ int getTable(int, struct tavolo_sv**);
 
 #include "cmd/ping.c"
 #include "cmd/td_getid.c"
+#include "cmd/td_unlock.c"
 #include "cmd/td_menu.c"
 #include "cmd/td_comanda.c"
 #include "cmd/cl_book.c"

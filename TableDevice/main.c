@@ -24,6 +24,9 @@ struct p_com{
 /* Connette il dispositivo ad un tavolo */
 int connectTable(int, tavolo_id*);
 
+/* Sblocca il dispositivo */
+int unlockTable(int, int*, unlock_code);
+
 /* Mostra i dettagli dei comandi */
 int help(void);
 
@@ -47,6 +50,7 @@ int main(int argc, char *argv[]){
 	tavolo_id id; /* Identificativo del tavolo */
 	int sd; /* Descrittore Socket */
 	int ret; /* Valore di ritorno */
+	int lock; /* Blocco del tavolo */
 	/* ----------------------------------------------------------------------------- */
 
 	/* Controllo comando*/
@@ -84,19 +88,25 @@ int main(int argc, char *argv[]){
 	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
 	if(!connectTable(sd, &id)){ 
+		lock = 1; /* Blocco il tavolo */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 		while(1){
-			cmd command; /* Comando selezionato */
-
+			
 			printf("\033[H\033[J"); /* Pulizia schermo */
-			printf("***************************** BENVENUTO *****************************\n");
-			printf("Digita un comando: \033[s\n"); 
-			printf("\n");
-			printf("> help		--> mostra i dettagli dei comandi\n");
-			printf("> menu		--> mostra il menu dei piatti\n");
-			printf("> comanda	--> invia una comanda\n");
-			printf("> conto		--> chiede il conto\n");
+
+			if(lock){ /* Se il tavolo è bloccato */
+				printf("***************************** TAVOLO %d *****************************\n", id);
+				printf("Inserisci codice di sblocco: \033[s\n");
+			}else{
+				printf("***************************** BENVENUTO *****************************\n");
+				printf("Digita un comando: \033[s\n"); 
+				printf("\n");
+				printf("> help		--> mostra i dettagli dei comandi\n");
+				printf("> menu		--> mostra il menu dei piatti\n");
+				printf("> comanda	--> invia una comanda\n");
+				printf("> conto		--> chiede il conto\n");
+			}
 			printf("\033[u");
 			fflush(stdout);
 
@@ -113,20 +123,29 @@ int main(int argc, char *argv[]){
 			/* Controllo se è arrivato qualcosa sullo stdin */
 			if(FD_ISSET(STDIN_FILENO, &read_fds)){
 
-				ret = scanf("%s", command);
-				getchar();
-				if(ret > 0){
-					if(strcmp(command, "help") == 0){
-						if(help()) break;
-					}
-					else if(strcmp(command, "menu") == 0){
-						if(menu(sd)) break;
-					}
-					else if(strcmp(command, "comanda") == 0){
-						comanda(sd);
-					}
-					else if(strcmp(command, "conto") == 0){
-						/* conto(sd); */
+				if(lock){
+					unlock_code code; /* Codice di sblocco */
+					scanf("%x", &code);
+					getchar();
+					if(unlockTable(sd, &lock, code)) break;
+				}else{
+					cmd command; /* Comando selezionato */
+
+					scanf("%s", command);
+					getchar();
+					if(ret > 0){
+						if(strcmp(command, "help") == 0){
+							if(help()) break;
+						}
+						else if(strcmp(command, "menu") == 0){
+							if(menu(sd)) break;
+						}
+						else if(strcmp(command, "comanda") == 0){
+							comanda(sd);
+						}
+						else if(strcmp(command, "conto") == 0){
+							/* conto(sd); */
+						}
 					}
 				}
 
@@ -172,6 +191,48 @@ int connectTable(int sd, tavolo_id* id){
 	}
 
 	*id = tmp;
+
+	return 0;
+}
+
+int unlockTable(int sd, int* lock, unlock_code code){
+	int ret; /* Valore di ritorno */
+	uint8_t r_lock; /* Variabile per la risposta di unlock */
+	response res; /* Variabile per la risposta del server */
+
+	printf("\033[H\033[J"); /* Pulizia schermo */
+	
+	/* Invio richiesta di sblocco */
+	if(send(sd, TD_UNLOCK, sizeof(TD_UNLOCK), 0) < 0){ 
+		perror("Errore in fase di richiesta di sblocco");
+		return -1;
+	}
+
+
+	/* Invio codice di sblocco */
+	code = htonl(code);
+	if(send(sd, &code, sizeof(unlock_code), 0) < 0){ 
+		perror("Errore in fase di invio del codice di sblocco");
+		return -1;
+	}
+
+	/* Ricezione risposta di unlock */
+	if((ret = recv(sd, &r_lock, sizeof(uint8_t), 0)) <= 0){ 
+		if(ret<0) perror("Errore in fase di ricezione della risposta di sblocco");
+		return -1;
+	}
+
+	if(!r_lock) *lock = 0;
+
+	/* Ricezione risposta del server */
+	if((ret = recv(sd, &res, sizeof(response), 0)) <= 0){ 
+		if(ret<0) perror("Errore in fase di ricezione della risposta del server");
+		return -1;
+	}
+
+	printf("%s\n", res);
+	printf("\nPremi INVIO per continuare...");
+	getchar();
 
 	return 0;
 }
