@@ -36,7 +36,7 @@ il primo parametro è il puntatore all'elemento di riferimento,
 il secondo parametro è il puntatore all'i-esimo elemento da confrontare,
 Ritorna 1 = True, 0 = False 
 */
-typedef int (*cmpFun)(struct list*, struct list*);
+typedef int (*cmpFun)(void*, void*);
 
 /* Conversione stato_com in stringa */
 const char* stato_com_str[] = {
@@ -114,19 +114,19 @@ const cmd SV_UPDCOM = "updcom";
 /* Aggiunge un elemento alla lista,
 il primo parametro è la testa
 il secondo è l'elemento */
-int append(struct list**, struct list*);
+int lAppend(void**, void*);
 
 /* Cerca un elemento nella lista,
 il primo parametro è la testa
 il secondo è l'elemento da cercare
 il terzo è la funzione di comparazione (NULL = default) */
-struct list* find(struct list*, struct list*, cmpFun);
+void* lFind(void*, void*, cmpFun);
 
 /* Funzione di comparazione di default */
-int defaultCmpFun(struct list*, struct list*);
+int defaultCmpFun(void*, void*);
 
 /* Aggiunge un elemento alla lista */
-int append(struct list** head, struct list* elem){
+int lAppend(void** head, void* elem){
 	struct list* tmp;
 	
 	if(*head == NULL){
@@ -134,12 +134,12 @@ int append(struct list** head, struct list* elem){
 		return 1;
 	}
 	
-	for(tmp = *head; tmp->next != NULL; tmp = tmp->next);
+	for(tmp = *(struct list**)head; tmp->next != NULL; tmp = tmp->next);
 	tmp->next = elem;
 	return 1;
 }
 
-struct list* find(struct list* head, struct list* elem, cmpFun cmp){
+void* lFind(void* head, void* elem, cmpFun cmp){
 	struct list* tmp;
 	
 	if(head == NULL)
@@ -148,14 +148,14 @@ struct list* find(struct list* head, struct list* elem, cmpFun cmp){
 	if (cmp == NULL)
 		cmp = defaultCmpFun;
 
-	for(tmp = head; tmp != NULL; tmp = tmp->next)
-		if(cmp(elem, tmp))
+	for(tmp = (struct list*)head; tmp != NULL; tmp = tmp->next)
+		if(cmp(elem, (void*)tmp))
 			return tmp;
 	
 	return 0;
 }
 
-int defaultCmpFun(struct list* a, struct list* b){
+int defaultCmpFun(void* a, void* b){
 	return a == b;
 }
 
