@@ -34,7 +34,7 @@ typedef uint8_t stato_com;
 /* Funzione di comparazione; 
 il primo parametro è il puntatore all'elemento di riferimento,
 il secondo parametro è il puntatore all'i-esimo elemento da confrontare,
-Ritorna 1 = True, 0 = False 
+Ritorna 1 = uguale, 0 = diverso 
 */
 typedef int (*cmpFun)(void*, void*);
 
@@ -117,10 +117,18 @@ il secondo è l'elemento */
 int lAppend(void**, void*);
 
 /* Cerca un elemento nella lista,
-il primo parametro è la testa
-il secondo è l'elemento da cercare
-il terzo è la funzione di comparazione (NULL = default) */
-void* lFind(void*, void*, cmpFun);
+il primo parametro è la testa,
+il secondo è l'elemento da cercare,
+il terzo è la funzione di comparazione (NULL = default),
+ritorna il puntatore all'elemento trovato, NULL altrimenti */
+void* lFind(void**, void*, cmpFun);
+
+/* Rimuove un elemento dalla lista,
+il primo parametro è la testa,
+il secondo è l'elemento da rimuovere,
+il terzo è la funzione di comparazione (NULL = default),
+ritorna il puntatore all'elemento rimosso, NULL altrimenti */
+void* lRemove(void**, void*, cmpFun);
 
 /* Funzione di comparazione di default */
 int defaultCmpFun(void*, void*);
@@ -136,10 +144,11 @@ int lAppend(void** head, void* elem){
 	
 	for(tmp = *(struct list**)head; tmp->next != NULL; tmp = tmp->next);
 	tmp->next = elem;
+	((struct list*)elem)->next = NULL;
 	return 1;
 }
 
-void* lFind(void* head, void* elem, cmpFun cmp){
+void* lFind(void** head, void* elem, cmpFun cmp){
 	struct list* tmp;
 	
 	if(head == NULL)
@@ -148,12 +157,35 @@ void* lFind(void* head, void* elem, cmpFun cmp){
 	if (cmp == NULL)
 		cmp = defaultCmpFun;
 
-	for(tmp = (struct list*)head; tmp != NULL; tmp = tmp->next)
+	for(tmp = *(struct list**)head; tmp != NULL; tmp = tmp->next)
 		if(cmp(elem, (void*)tmp))
 			return tmp;
 	
-	return 0;
+	return NULL;
 }
+
+void* lRemove(void** head, void* elem, cmpFun cmp){
+	struct list* tmp;
+	struct list* prev;
+	
+	if(head == NULL)
+		return NULL;
+	
+	if (cmp == NULL)
+		cmp = defaultCmpFun;
+
+	for(tmp = *(struct list**)head, prev = NULL; tmp != NULL; prev = tmp, tmp = tmp->next)
+		if(cmp(elem, (void*)tmp)){
+			if(prev == NULL)
+				*head = tmp->next;
+			else
+				prev->next = tmp->next;
+			return tmp;
+		}
+	
+	return NULL;
+}
+
 
 int defaultCmpFun(void* a, void* b){
 	return a == b;
