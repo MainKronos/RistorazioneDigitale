@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "header.h"
+#include "cardinal.c"
 
 int main(int argc, char *argv[]){
 

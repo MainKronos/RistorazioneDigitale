@@ -1,4 +1,4 @@
-#include "header.h"
+#include "cardinal.c"
 #include "../main.h"
 
 #include <stdlib.h>

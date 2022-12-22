@@ -8,15 +8,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "header.h"
+#include "cardinal.c"
 
 /* --- Strutture ------------------------------------------------------------------- */
 
 /* Lista di piatti della comanda usato per il parsing da input */
 struct p_com{
+	struct p_com* next; /* puntatore al prossimo piatto */
 	type code; /* codice del piatto */
 	len num; /* quantità del piatto */
-	struct p_com* next; /* puntatore al prossimo piatto */
 };
 
 tavolo_id TID; /* Identificativo del tavolo */
@@ -261,7 +261,7 @@ int help(void){
 
 int menu(int sd){
 	int ret; /* Valore di ritorno */
-	unsigned int i; /* Indice */
+	int i; /* Indice */
 	len n; /* numero piatti del menu */
 
 	printf("\033[H\033[J"); /* Pulizia schermo */
@@ -335,8 +335,10 @@ int comanda(int sd){
 			if(sw){
 				/* Quantità piatto */
 				num_tmp = atoi(buffer);
-				addPiattoToComanda(&com_ptr, code_tmp, num_tmp);
-				n_piatti++;
+
+				/* Aggiunta piatto alla lista */
+				if(!addPiattoToComanda(&com_ptr, code_tmp, num_tmp))
+					n_piatti++;
 				sw = 0;
 			}else{
 				/* Codice piatto */
@@ -419,7 +421,7 @@ int addPiattoToComanda(struct p_com** com_ptr, type code, len num){
 			/* Se il codice è già presente nella lista, aggiorno la quantità */
 			if(strcmp(tmp->code, code) == 0){
 				tmp->num += num;
-				return 0;
+				return -1;
 			}
 		}
 

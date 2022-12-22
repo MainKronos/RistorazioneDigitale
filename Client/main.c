@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "header.h"
+#include "cardinal.c"
 
 /* Mostra i dettagli dei comandi */
 int help(void);
@@ -220,7 +220,7 @@ int book(int sd){
 	len choice; /* Scelta dell'utente */
 	response r; /* Risposta dal server */
 
-	scanf("%u", &choice);
+	scanf("%d", &choice);
 	printf("\033[H\033[J"); /* Pulizia schermo */
 
 	/* Invio scelta */

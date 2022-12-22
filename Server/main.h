@@ -1,7 +1,7 @@
 #ifndef server_header
 #define server_header
 
-#include "header.h"
+#include "cardinal.c"
 
 /* --- COSTANTI ------------------------------------------------------------------------- */
 

@@ -1,9 +1,12 @@
+/*********************************************************************
+ * Cardinal - File cardine del progetto                              *
+ *********************************************************************/
+
 #ifndef my_header
 #define my_header
 
 #include <stdint.h>
 #include <pthread.h>
-#include "g_utils.c"
 
 /*--- TIPI --------------------------------------------------------------*/
 
@@ -27,6 +30,13 @@ typedef uint32_t unlock_code;
 
 /* Stato della comanda */
 typedef uint8_t stato_com; 
+
+/* Funzione di comparazione; 
+il primo parametro è il puntatore all'elemento di riferimento,
+il secondo parametro è il puntatore all'i-esimo elemento da confrontare,
+Ritorna 1 = True, 0 = False 
+*/
+typedef int (*cmpFun)(struct list*, struct list*);
 
 /* Conversione stato_com in stringa */
 const char* stato_com_str[] = {
@@ -101,7 +111,53 @@ const cmd SV_UPDCOM = "updcom";
 
 /* --- UTILS ------------------------------------------------------------------------- */
 
-/* Aggiunge un elemento alla lista */
+/* Aggiunge un elemento alla lista,
+il primo parametro è la testa
+il secondo è l'elemento */
 int append(struct list**, struct list*);
 
+/* Cerca un elemento nella lista,
+il primo parametro è la testa
+il secondo è l'elemento da cercare
+il terzo è la funzione di comparazione (NULL = default) */
+struct list* find(struct list*, struct list*, cmpFun);
+
+/* Funzione di comparazione di default */
+int defaultCmpFun(struct list*, struct list*);
+
+/* Aggiunge un elemento alla lista */
+int append(struct list** head, struct list* elem){
+	struct list* tmp;
+	
+	if(*head == NULL){
+		*head = elem;
+		return 1;
+	}
+	
+	for(tmp = *head; tmp->next != NULL; tmp = tmp->next);
+	tmp->next = elem;
+	return 1;
+}
+
+struct list* find(struct list* head, struct list* elem, cmpFun cmp){
+	struct list* tmp;
+	
+	if(head == NULL)
+		return NULL;
+	
+	if (cmp == NULL)
+		cmp = defaultCmpFun;
+
+	for(tmp = head; tmp != NULL; tmp = tmp->next)
+		if(cmp(elem, tmp))
+			return tmp;
+	
+	return 0;
+}
+
+int defaultCmpFun(struct list* a, struct list* b){
+	return a == b;
+}
+
 #endif
+

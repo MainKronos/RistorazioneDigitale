@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "header.h"
+#include "cardinal.c"
 #include "../main.h"
 
 int td_unlock(int sd){
