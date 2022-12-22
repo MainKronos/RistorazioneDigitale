@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#include "g_utils.c"
 
 /*--- TIPI --------------------------------------------------------------*/
 
@@ -13,7 +14,7 @@ typedef char cmd[20];
 typedef char type[3];
 
 /* Numero di elementi */
-typedef uint32_t len; 
+typedef int32_t len; 
 
 /* Risposta del server */
 typedef char response[2048]; 
@@ -23,6 +24,21 @@ typedef uint32_t tavolo_id;
 
 /* Codice di sblocco del tavolo */
 typedef uint32_t unlock_code; 
+
+/* Stato della comanda */
+typedef uint8_t stato_com; 
+
+/* Conversione stato_com in stringa */
+const char* stato_com_str[] = {
+	"in attesa",
+	"in preparazione",
+	"in servizio"
+};
+
+/* Struttura lista base */
+struct list{
+	struct list* next;
+};
 
 /* Informazioni sul tavolo */
 struct tavolo{
@@ -44,6 +60,14 @@ struct prenotazione{
 	char cognome[255]; /* Cognome del cliente che ha prenotato */
 	uint16_t n_persone; /* Numero di persone */
 	time_t datetime; /* Data e ora della prenotazione */
+};
+
+/* Informazioni sulla comanda per il trasferimento */
+struct comanda{
+	tavolo_id tid; /* Identificativo del tavolo */
+	len nlen; /* Numero di piatti */
+	type* p; /* Puntatore al vettore dei codici dei piatti */
+	len* q; /* Puntatore al vettore delle quantità */
 };
 
 /*--- COMANDI ------------------------------------------------------------*/
@@ -68,5 +92,16 @@ const cmd CL_FIND = "find";
 
 /* Richiesta prenotazione tavolo per il Client */
 const cmd CL_BOOK = "book";
+
+/* Richiesta del KitchenDevice del numero di comande in attesa */
+const cmd KD_GETCOMLEN = "getcomlen";
+
+/* Invio aggiornamento comanda dal server al tavolo */
+const cmd SV_UPDCOM = "updcom";
+
+/* --- UTILS ------------------------------------------------------------------------- */
+
+/* Aggiunge un elemento alla lista */
+int append(struct list**, struct list*);
 
 #endif

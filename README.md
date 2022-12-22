@@ -7,7 +7,7 @@ sequenceDiagram
 	participant sv as Server
 	participant cl as Client
 	alt find
-		cl->>+sv: comando find
+		cl->>sv: comando find
 		Note over sv,cl: Invio dati prenotazione
 		cl->>sv: cognome
 		cl->>sv: numero persone
@@ -17,7 +17,7 @@ sequenceDiagram
 		loop Per ogni tavolo
 			sv->>cl: ID tavolo
 			sv->>cl: sala
-			sv->>-cl: ubicazione
+			sv->>cl: ubicazione
 		end
 	else book
 		cl->>sv: comando book

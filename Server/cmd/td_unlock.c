@@ -34,20 +34,20 @@ int td_unlock(int sd){
 		/* Tavolo riconosciuto */
 
 		struct prenotazione_sv* p; /* Prenotazione corrispondente al codice */
-		struct pre_list* p_list; /* Lista prenotazione */
-		struct pre_list* p_list_pre; /* Lista prenotazione precedente a p_list */
+		struct prenotazione_sv* tmp; /* Prenotazione temporanea */
+		struct prenotazione_sv* p_pre; /* prenotazione precedente a p */
 		
 		/* Cerco il codice */
 		pthread_mutex_lock(&t->mutex);
-		p_list_pre = NULL;
-		for(p_list=t->prenotazioni; p_list!=NULL; p_list_pre=p_list, p_list=p_list->next){
-			if(p_list->prenotazione->code == code){
+		p_pre = NULL;
+		for(tmp=t->prenotazioni; tmp!=NULL; p_pre=tmp, tmp=tmp->next){
+			if(tmp->code == code){
 				/* Codice trovato */
 				lock = 0;
 				break;
 			}
 		}
-		if(p_list==NULL){
+		if(tmp==NULL){
 			/* Codice non trovato */
 			lock = 1;
 			strcpy(r, "Codice sblocco non valido");
@@ -56,15 +56,14 @@ int td_unlock(int sd){
 
 			char datetime[1024]; /* Buffer per il tempo */
 
-			if(p_list_pre==NULL){
+			if(p_pre==NULL){
 				/* Il codice è il primo della lista */
-				t->prenotazioni = p_list->next;
+				t->prenotazioni = tmp->next;
 			}else{
 				/* Il codice non è il primo della lista */
-				p_list_pre->next = p_list->next;
+				p_pre->next = tmp->next;
 			}
-			p = p_list->prenotazione;
-			free(p_list);
+			p = tmp;
 
 			lock = 0;
 			strftime(datetime, sizeof(datetime), "%d/%m/%Y %H:%M:%S", localtime(&p->inf.datetime));

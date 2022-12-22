@@ -17,44 +17,40 @@ struct tavolo_sv {
 	/* Informazioni aggiuntive del server */
 
 	int sd; /* Socket del TableDevice collegato al tavolo */
-	struct pre_list* prenotazioni; /* Lista delle prenotazioni di questo tavolo */
+	struct prenotazione_sv* prenotazioni; /* Lista delle prenotazioni di questo tavolo */
 	pthread_mutex_t mutex; /* Mutex per la gestione della lista delle prenotazioni */
-};
-
-/* Lista di prenotazioni */
-struct pre_list{
-	struct prenotazione_sv* prenotazione;
-	struct pre_list* next;
 };
 
 /* Informazioni sulla prenotazione del SERVER */
 struct prenotazione_sv{
-	struct prenotazione inf; /* Informazioni prenotazione */
+	struct prenotazione_sv* next; /* Puntatore al prossimo elemento */
 
+	struct prenotazione inf; /* Informazioni prenotazione */
 	/* Informazioni aggiuntive del server */
 
 	unlock_code code; /* Codice di sblocco del tavolo */
 	struct tavolo_sv* tavolo; /* Tavolo prenotato */
 	time_t timestamp; /* Timestamp del momento della finalizzazione della prenotazione */
+	
 };
 
 /* Prenotazione in sospeso */
 struct pre_sosp{
+	struct pre_sosp* next; /* Puntatore al prossimo elemento */
 	int sd; /* Socket del Client collegato alla prenotazione in sospeso */
 	struct prenotazione_sv* p; /* Prenotazione da ricevere */
 	struct tavolo_sv* t[N_TAVOLI]; /* Tavoli liberi trovati */
 	len nlen; /* numero di tavoli liberi trovati */
-	struct pre_sosp* next; /* Puntatore al prossimo elemento */
 };
 
-/* informazioni comanda */
-struct comanda{
+/* informazioni comanda del SERVER */
+struct comanda_sv{
+	struct comanda_sv* next; /* Puntatore al prossimo elemento */
+	stato_com stato; /* Stato della comanda */
 	len nlen; /* Numero di piatti */
 	struct piatto* p[N_PIATTI]; /* Vettore di puntatori ai piatti */
 	len q[N_PIATTI]; /* Vettore delle quantità */
 	struct tavolo_sv* t; /* Puntatore al tavolo di provenienza della comanda */
-
-	struct comanda* next; /* Puntatore al prossimo elemento */
 };
 
 /* --- Variabili Globali --------------------------------------------------------------- */
@@ -62,7 +58,7 @@ struct comanda{
 struct piatto menu[N_PIATTI]; /* Menu */
 struct tavolo_sv tavoli[N_TAVOLI]; /* Tavoli */
 
-struct comanda* comande; /* Lista delle comande */
+struct comanda_sv* comande; /* Lista delle comande del server */
 pthread_mutex_t mutex_comande; /* Mutex per la gestione della lista delle comande */
 
 struct pre_sosp* prenotazioni_sospese; /* Prenotazioni in sospeso */
@@ -95,6 +91,9 @@ int cl_find(int);
 
 /* Prenota un tavolo */
 int cl_book(int);
+
+/* Risponde al kitchenDevice con il numero di comande in attesa */
+int kd_getcomlen(int);
 
 /* --- Funzioni di supporto ------------------- */
 
@@ -139,6 +138,7 @@ int getTable(int, struct tavolo_sv**);
 #include "cmd/td_comanda.c"
 #include "cmd/cl_book.c"
 #include "cmd/cl_find.c"
+#include "cmd/kd_getcomlen.c"
 
 /* --- FUNZIONI DI SUPPORTO --------------------------------------------------------------------------------------- */
 

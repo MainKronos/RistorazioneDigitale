@@ -118,30 +118,28 @@ void initTavoli(void){
 }
 
 int bookSlot(struct tavolo_sv* t, struct prenotazione_sv* p){
-	struct pre_list* pre;
-	struct pre_list* succ;
-	struct pre_list* new = (struct pre_list*)malloc(sizeof(struct pre_list));
-	new->prenotazione = p;
-	new->next = NULL;
+	struct prenotazione_sv* pre;
+	struct prenotazione_sv* succ;
+	p->next = NULL;
 
 	pthread_mutex_lock(&t->mutex);
 
 	if(t->prenotazioni == NULL){
-		t->prenotazioni = new;
+		t->prenotazioni = p;
 		pthread_mutex_unlock(&t->mutex);
 		return 1;
 	}
 
 	/* Inserimento ordinato */
 	for(pre=succ=t->prenotazioni; succ != NULL; pre=succ,succ=succ->next){
-		if(difftime(succ->prenotazione->inf.datetime, p->inf.datetime) == 0){
+		if(difftime(succ->inf.datetime, p->inf.datetime) == 0){
 			pthread_mutex_unlock(&t->mutex);
 			return 0;
 		}
 
-		if(difftime(succ->prenotazione->inf.datetime, p->inf.datetime) > 0){
-			new->next = succ;
-			pre->next = new;
+		if(difftime(succ->inf.datetime, p->inf.datetime) > 0){
+			p->next = succ;
+			pre->next = p;
 			pthread_mutex_unlock(&t->mutex);
 			return 1;
 		}
@@ -152,7 +150,7 @@ int bookSlot(struct tavolo_sv* t, struct prenotazione_sv* p){
 }
 
 int findSlot(struct tavolo_sv* t, struct prenotazione_sv pre){
-	struct pre_list* tmp;
+	struct prenotazione_sv* tmp;
 
 	if(t->inf.n_posti < pre.inf.n_persone)
 		return 0;
@@ -160,7 +158,7 @@ int findSlot(struct tavolo_sv* t, struct prenotazione_sv pre){
 	pthread_mutex_lock(&t->mutex);
 
 	for(tmp=t->prenotazioni; tmp != NULL; tmp=tmp->next){
-		if(difftime(tmp->prenotazione->inf.datetime, pre.inf.datetime)==0){
+		if(difftime(tmp->inf.datetime, pre.inf.datetime)==0){
 			pthread_mutex_unlock(&t->mutex);
 			return 0;
 		}

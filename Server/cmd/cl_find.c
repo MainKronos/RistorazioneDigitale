@@ -20,7 +20,7 @@ int cl_find(int sd){
 	/* Se è stata trovata una prenotazione in sospeso, viene rimossa */
 	if(p_sosp){
 		free(p_sosp->p);
-		free(p_sosp);
+		removePrenotazioneSospesa(sd);
 	}
 	/* Allocazione di una nuova prenotazione in sospeso */
 	p_sosp = malloc(sizeof(struct pre_sosp)); /* Allocazione memoria */

@@ -183,7 +183,10 @@ void* socketHandler(void* arg) {
 				if(cl_find(sd)) break;
 			}else if(strcmp(command, CL_BOOK) == 0) {
 				if(cl_book(sd)) break;
+			}else if(strcmp(command, KD_GETCOMLEN) == 0) {
+				if(kd_getcomlen(sd)) break;
 			}
+
 		}
 	}
 

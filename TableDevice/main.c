@@ -12,17 +12,19 @@
 
 /* --- Strutture ------------------------------------------------------------------- */
 
-/* Lista di piatti della comanda */
+/* Lista di piatti della comanda usato per il parsing da input */
 struct p_com{
 	type code; /* codice del piatto */
 	len num; /* quantità del piatto */
 	struct p_com* next; /* puntatore al prossimo piatto */
 };
 
+tavolo_id TID; /* Identificativo del tavolo */
+
 /* --- Funzioni ------------------------------------------------------------------- */
 
 /* Connette il dispositivo ad un tavolo */
-int connectTable(int, tavolo_id*);
+int connectTable(int);
 
 /* Sblocca il dispositivo */
 int unlockTable(int, int*, unlock_code);
@@ -38,8 +40,13 @@ int comanda(int);
 
 /* --- Utility --------------------------------------------------------------------- */
 
-/* Aggiunge un piatto alla comanda */
+/* Aggiunge un piatto alla lista comanda */
 int addPiattoToComanda(struct p_com**, type, len);
+
+/* Converte la lista comanda in una comanda */
+int p_comToComanda(struct p_com*, struct comanda*);
+
+/* --- Main ------------------------------------------------------------------------ */
 
 int main(int argc, char *argv[]){
 
@@ -47,7 +54,6 @@ int main(int argc, char *argv[]){
 	fd_set master; /* Set principale */
 	fd_set read_fds; /* Set di lettura gestito dalla select */
 	struct sockaddr_in sv_addr; /* Indirizzo server */
-	tavolo_id id; /* Identificativo del tavolo */
 	int sd; /* Descrittore Socket */
 	int ret; /* Valore di ritorno */
 	int lock; /* Blocco del tavolo */
@@ -87,8 +93,8 @@ int main(int argc, char *argv[]){
 
 	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
-	if(!connectTable(sd, &id)){ 
-		lock = 1; /* Blocco il tavolo */
+	if(!connectTable(sd)){ 
+		lock = 0; /* Blocco il tavolo, mettere 0 in fase di test, altrimenti 1 */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 		while(1){
@@ -96,7 +102,7 @@ int main(int argc, char *argv[]){
 			printf("\033[H\033[J"); /* Pulizia schermo */
 
 			if(lock){ /* Se il tavolo è bloccato */
-				printf("***************************** TAVOLO %d *****************************\n", id);
+				printf("***************************** TAVOLO %d *****************************\n", TID);
 				printf("Inserisci codice di sblocco: \033[s\n");
 			}else{
 				printf("***************************** BENVENUTO *****************************\n");
@@ -131,7 +137,7 @@ int main(int argc, char *argv[]){
 				}else{
 					cmd command; /* Comando selezionato */
 
-					scanf("%s", command);
+					ret = scanf("%s", command);
 					getchar();
 					if(ret > 0){
 						if(strcmp(command, "help") == 0){
@@ -167,7 +173,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-int connectTable(int sd, tavolo_id* id){
+int connectTable(int sd){
 	int ret; /* Valore di ritorno */
 	tavolo_id tmp; /* Variabile temporanea */
 
@@ -190,7 +196,7 @@ int connectTable(int sd, tavolo_id* id){
 		return -1;
 	}
 
-	*id = tmp;
+	TID = tmp;
 
 	return 0;
 }
@@ -299,7 +305,7 @@ int menu(int sd){
 int comanda(int sd){
 	len n_piatti; /* numero piatti della comanda */
 	struct p_com* com_ptr; /* puntatore alla lista di piatti della comanda */
-	struct p_com* com_ptr_tmp; /* puntatore temporaneo alla lista di piatti della comanda */
+	struct comanda com; /* struttura comanda per il traferimento */
 	type code_tmp; /* variabile temporanea del codice del piatto */
 	len num_tmp; /* variabile temporanea della quantità del piatto */
 	int i; /* indice */
@@ -308,11 +314,14 @@ int comanda(int sd){
 	int sw; /* variabile di controllo per il parser */
 	response r; /* risposta del server */
 	len tmp; /* variabile temporanea per l'invio */
+	tavolo_id tmp_t; /* variabile temporanea per l'invio */
 
 	printf("\033[H\033[J"); /* Pulizia schermo */
 
-	/* Blocco di codice per parsare l'input dei piatti.
-	NON MODIFICARE ASSOLUTAMENTE */
+	/*************************************************************************
+	Blocco di codice per parsare l'input dei piatti.
+	NON MODIFICARE ASSOLUTAMENTE .
+	**************************************************************************/
 
 	n_piatti = 0;
 	com_ptr = NULL;
@@ -341,33 +350,50 @@ int comanda(int sd){
 
 	/*****************************************************************************/
 
+	/* Converto la lista comanda nel formato standard per il trasferimento */
+
+	memset(&com, 0, sizeof(com)); /* Pulizia struttura */
+	com.nlen = n_piatti;
+	com.tid = TID;
+	p_comToComanda(com_ptr, &com);
+
+	com_ptr = NULL; /* Pulizia lista comanda */
+
+
 	/* Invio richiesta di invio comanda */
 	if(send(sd, TD_COMANDA, sizeof(TD_COMANDA), 0) < 0){
 		perror("Errore in fase di invio richiesta di invio comanda");
 		return -1;
 	}
 
+	/* Invio identificativo tavolo */
+	tmp_t = htonl(com.tid);
+	if(send(sd, &tmp_t, sizeof(tmp_t), 0) < 0){
+		perror("Errore in fase di invio identificativo tavolo");
+		return -1;
+	}
+
 	/* Invio numero piatti della comanda */
-	tmp = htonl(n_piatti);
+	tmp = htonl(com.nlen);
 	if(send(sd, &tmp, sizeof(tmp), 0) < 0){
 		perror("Errore in fase di invio numero piatti");
 		return -1;
 	}
-	for(i=0; i<(int)n_piatti; i++){
+	for(i=0; i<(int)com.nlen; i++){
 		/* Invio codice piatto e quantità*/
 		
-		tmp = htonl(com_ptr->num);
+		tmp = htonl(com.q[i]);
 		if(
-			send(sd, com_ptr->code, sizeof(com_ptr->code), 0) < 0 ||
-			send(sd, &tmp, sizeof(tmp), 0) < 0
+			send(sd, com.p[i], sizeof(type), 0) < 0 ||
+			send(sd, &tmp, sizeof(len), 0) < 0
 		){
 			perror("Errore in fase di invio codice piatto");
 			return -1;
 		}
-		com_ptr_tmp = com_ptr;
-		com_ptr = com_ptr->next;
-		free(com_ptr_tmp);
 	}
+
+	free(com.p); /* Libero memoria allocata per la lista di codici */
+	free(com.q); /* Libero memoria allocata per la lista di quantità */
 
 	/* Ricezione risposta dal server */
 	if(recv(sd, r, sizeof(r), 0) < 0){
@@ -410,5 +436,23 @@ int addPiattoToComanda(struct p_com** com_ptr, type code, len num){
 	tmp->num = num;
 	tmp->next = NULL;
 
+	return 0;
+}
+
+int p_comToComanda(struct p_com* com_ptr, struct comanda* comanda){
+	int i; /* indice */
+	struct p_com* tmp; /* puntatore temporaneo */
+
+	comanda->p = malloc(sizeof(type)*comanda->nlen);
+	comanda->q = malloc(sizeof(len)*comanda->nlen);
+
+	for(i=0; i<(int)comanda->nlen; i++){
+		strcpy(comanda->p[i], com_ptr->code);
+		comanda->q[i] = com_ptr->num;
+		tmp = com_ptr;
+		com_ptr=com_ptr->next;
+		free(tmp); /* Libero la memoria occupata dalla lista */
+	}
+	
 	return 0;
 }
