@@ -117,6 +117,18 @@ void initTavoli(void){
 	pthread_mutex_init(&tavoli[9].mutex, NULL);
 }
 
+struct pre_sosp* removePrenotazioneSospesa(int sd){
+	struct pre_sosp ps_tmp; /* Prenotazione in sospeso temporanea per il confronto */
+	struct pre_sosp* p_sosp; /* Prenotazione in sospeso trovata */
+	memset(&ps_tmp, 0, sizeof(struct pre_sosp)); /* Pulizia struttura */
+	ps_tmp.sd = sd; /* Salvataggio descrittore socket */
+
+	pthread_mutex_lock(&mutex_prenotazioni_sospese);
+	p_sosp = lRemove((void**)&prenotazioni_sospese, &ps_tmp, (cmpFun)cmpPrenotazioneSospeso); /* Ricerca prenotazione in sospeso */
+	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
+	return p_sosp;
+}
+
 int bookSlot(struct tavolo_sv* t, struct prenotazione_sv* p){
 	struct prenotazione_sv* pre;
 	struct prenotazione_sv* succ;
@@ -166,57 +178,6 @@ int findSlot(struct tavolo_sv* t, struct prenotazione_sv pre){
 
 	pthread_mutex_unlock(&t->mutex);
 	return 1;
-}
-
-struct pre_sosp* findPrenotazioneSospesa(int sd){
-	
-	struct pre_sosp* p;
-
-	pthread_mutex_lock(&mutex_prenotazioni_sospese);
-
-	for(p = prenotazioni_sospese; p != NULL; p = p->next){
-		if(p->sd == sd){
-			break;
-		}
-	}
-	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
-	return p;
-}
-
-void removePrenotazioneSospesa(int sd){
-	
-	struct pre_sosp* p_sosp; /* Variabile temporanea per scorrere la lista di prenotazioni sospese */
-	struct pre_sosp* p_sosp_prev = NULL; /* Variabile temporanea che si riferisce all'elemento precedente di p_sosp */
-
-	pthread_mutex_lock(&mutex_prenotazioni_sospese);
-
-	for(p_sosp = prenotazioni_sospese; p_sosp != NULL; p_sosp_prev = p_sosp, p_sosp = p_sosp->next){
-		if(p_sosp->sd == sd){ /* Se l'elemento corrente è quello da eliminare */
-			if(p_sosp_prev == NULL){
-				prenotazioni_sospese = p_sosp->next;
-			}else{
-				p_sosp_prev->next = p_sosp->next;
-			}
-			free(p_sosp); /* Deallocazione della memoria occupata dalla prenotazione sospesa */
-			break;
-		}
-	}
-	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
-}
-
-void insertPrenotazioneSospesa(struct pre_sosp* p_sosp){
-	struct pre_sosp* tmp; /* Variabile temporanea per scorrere la lista di prenotazioni sospese */
-
-	pthread_mutex_lock(&mutex_prenotazioni_sospese);
-	
-	if(prenotazioni_sospese == NULL){
-		prenotazioni_sospese = p_sosp;
-	}else{
-		for(tmp = prenotazioni_sospese; tmp->next != NULL; tmp = tmp->next);
-		tmp->next = p_sosp;
-	}
-
-	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
 }
 
 int connectTable(int sd, struct tavolo_sv** t){
@@ -269,4 +230,12 @@ int disconnectTable(int sd){
 	}
 
 	return -1;
+}
+
+int cmpCodePrenotazione(struct prenotazione_sv* p_ref, struct prenotazione_sv* p_i){
+	return p_ref->code == p_i->code;
+}
+
+int cmpPrenotazioneSospeso(struct pre_sosp* ps_ref, struct pre_sosp* ps_i){
+	return ps_ref->sd == ps_i->sd;
 }

@@ -145,7 +145,7 @@ int lAppend(void** head, void* elem){
 	for(tmp = *(struct list**)head; tmp->next != NULL; tmp = tmp->next);
 	tmp->next = elem;
 	((struct list*)elem)->next = NULL;
-	return 1;
+	return 0;
 }
 
 void* lFind(void** head, void* elem, cmpFun cmp){

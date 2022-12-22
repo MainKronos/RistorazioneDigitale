@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
 	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
 	if(!connecttable(sd)){ 
-		lock = 0; /* Blocco il tavolo, mettere 0 in fase di test, altrimenti 1 */
+		lock = 0; /* !ALERT: Blocco il tavolo, mettere 0 in fase di test, altrimenti 1 */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 		while(1){

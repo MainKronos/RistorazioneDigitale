@@ -109,14 +109,8 @@ int bookSlot(struct tavolo_sv*, struct prenotazione_sv*);
 /* Cerca se è disponibile un posto per un tavolo per una prenotazione */
 int findSlot(struct tavolo_sv*, struct prenotazione_sv);
 
-/* Ricerca prenotazione in sospeso, se ritorna NULL vuol dire che non ha trovato nulla */
-struct pre_sosp* findPrenotazioneSospesa(int);
-
 /* Rimozione prenotazione in sospeso */
-void removePrenotazioneSospesa(int);
-
-/* Inserimento prenotazione in sospeso */
-void insertPrenotazioneSospesa(struct pre_sosp*);
+struct pre_sosp* removePrenotazioneSospesa(int);
 
 /* Connette il socket del TableDevice ad un tavolo libero, 
 se ne viene trovato uno libero associa il socket al tavolo 
@@ -128,6 +122,12 @@ int disconnectTable(int);
 
 /* Ritorna il tavolo associato al socket del TableDevice */
 int getTable(int, struct tavolo_sv**);
+
+/* Confronta se il codice di prenotazione di due prenotazioni è uguale */
+int cmpCodePrenotazione(struct prenotazione_sv*, struct prenotazione_sv*);
+
+/* Confronta se il sd di due prenotazioni è uguale */
+int cmpPrenotazioneSospeso(struct pre_sosp*, struct pre_sosp*);
 
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 

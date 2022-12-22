@@ -5,6 +5,8 @@
 
 int cl_find(int sd){
 	struct pre_sosp* p_sosp = NULL; /* Prenotazione in sospeso */
+	struct pre_sosp ps_tmp; /* Prenotazione in sospeso temporanea per il confronto */
+	struct prenotazione_sv* p_tmp; /* Prenotazione */
 	len tmp; /* Variabile temporanea per il trasferimento*/
 	int i; /* Indice */
 	int ret; /* Valore di ritorno */
@@ -13,22 +15,32 @@ int cl_find(int sd){
 	socklen_t addrlen = sizeof(cl_addr);
 	getpeername(sd, (struct sockaddr *)&cl_addr, &addrlen);
 
-	p_sosp = findPrenotazioneSospesa(sd); /* Ricerca prenotazione in sospeso */
-	
-	/* Ricerca tavolo libero */
+	memset(&ps_tmp, 0, sizeof(struct pre_sosp)); /* Pulizia struttura */
+	ps_tmp.sd = sd; /* Salvataggio descrittore socket */
 
-	/* Se è stata trovata una prenotazione in sospeso, viene rimossa */
+	pthread_mutex_lock(&mutex_prenotazioni_sospese);
+	p_sosp = lFind((void**)&prenotazioni_sospese, &ps_tmp, (cmpFun)cmpPrenotazioneSospeso); /* Ricerca prenotazione in sospeso */
+	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
+	
 	if(p_sosp){
-		free(p_sosp->p);
-		removePrenotazioneSospesa(sd);
+		memset(p_sosp->p, 0, sizeof(struct prenotazione_sv));  /* Pulizia struttura */
+		p_tmp = p_sosp->p; /* Salvataggio puntatore prenotazione */
+		memset(p_sosp, 0, sizeof(struct pre_sosp)); /* Pulizia struttura */
+		p_sosp->p = p_tmp;
+		p_sosp->sd = sd;
+	}else{
+	
+		/* Allocazione di una nuova prenotazione in sospeso */
+		p_sosp = malloc(sizeof(struct pre_sosp)); /* Allocazione memoria */
+		memset(p_sosp, 0, sizeof(struct pre_sosp)); /* Pulizia struttura */
+		p_sosp->p = malloc(sizeof(struct prenotazione_sv)); /* Allocazione memoria */
+		memset(p_sosp->p, 0, sizeof(struct prenotazione_sv));  /* Pulizia struttura */
+		p_sosp->sd = sd; /* Salvataggio descrittore socket */
+
+		pthread_mutex_lock(&mutex_prenotazioni_sospese);
+		lAppend((void**)&prenotazioni_sospese, p_sosp); /* Inserimento prenotazione in sospeso in lista */
+		pthread_mutex_unlock(&mutex_prenotazioni_sospese);
 	}
-	/* Allocazione di una nuova prenotazione in sospeso */
-	p_sosp = malloc(sizeof(struct pre_sosp)); /* Allocazione memoria */
-	memset(p_sosp, 0, sizeof(struct pre_sosp)); /* Pulizia struttura */
-	p_sosp->p = malloc(sizeof(struct prenotazione_sv)); /* Allocazione memoria */
-	memset(p_sosp->p, 0, sizeof(struct prenotazione_sv));  /* Pulizia struttura */
-	p_sosp->sd = sd; /* Salvataggio descrittore socket */
-	insertPrenotazioneSospesa(p_sosp); /* Inserimento prenotazione in sospeso */
 
 	/* Ricezione prenotazione ----------------------------------------------- */
 

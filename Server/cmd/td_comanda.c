@@ -76,22 +76,23 @@ int td_comanda(int sd){
 		}
 		/* Se tutti i codici dei piatti sono stati trovati */
 		if(ret != -1){ 
-
+			char buf1[10] = ""; /* Buffer per la stampa */
+			char buf2[256] = ""; /* Buffer per la stampa */
 			new_com->stato = 0; /* Stato comanda: 0 = in attesa */
 
 			/* Inserimento comanda nella lista */
 			pthread_mutex_lock(&mutex_comande);
-			if(comande == NULL){
-				comande = new_com;
-			}else{
-				struct comanda_sv* tmp;
-				for(tmp = comande; tmp->next != NULL; tmp = tmp->next);
-				tmp->next = new_com;
-			}
+
+			lAppend((void**)&comande, (void*)new_com);
+
 			pthread_mutex_unlock(&mutex_comande);
 
 			strcpy(r, "Comanda ricevuta");
-			printf("Comanda ricevuta dal tavolo T%d di %d piatti\n", t->inf.id, new_com->nlen);
+			for(i=0; i<(int)new_com->nlen; i++){
+				sprintf(buf1, " %s-%d", new_com->p[i]->code, new_com->q[i]);
+				strcat(buf2, buf1);
+			}
+			printf("Comanda ricevuta dal tavolo T%d di %d piatti:%s\n", t->inf.id, new_com->nlen, buf2);
 		}
 	}
 

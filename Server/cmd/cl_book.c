@@ -15,7 +15,7 @@ int cl_book(int sd){
 	socklen_t addrlen = sizeof(cl_addr);
 	getpeername(sd, (struct sockaddr *)&cl_addr, &addrlen);
 
-	p_sosp = findPrenotazioneSospesa(sd); /* Ricerca prenotazione in sospeso */
+	p_sosp = removePrenotazioneSospesa(sd);
 	
 	/* Ricezione tavolo scelto */
 	ret = recv(sd, &choice, sizeof(choice), 0);
@@ -53,7 +53,7 @@ int cl_book(int sd){
 				printf("Prenotazione di %d posti del tavolo %d a nome %s per il %s effettuata per il client %s:%d\n", p->inf.n_persone, p->tavolo->inf.id, p->inf.cognome, datetime, inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
 			
 				/* Rimozione prenotazione in sospeso */
-				removePrenotazioneSospesa(sd);
+				free(p_sosp);
 			}else{
 				strcpy(r, "Tavolo già prenotato.");
 			}

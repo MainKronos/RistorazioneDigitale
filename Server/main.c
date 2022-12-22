@@ -166,7 +166,7 @@ void* socketHandler(void* arg) {
 			break;
 		} else if(ret > 0) {
 			/* Dati ricevuti */
-			printf("Comando %.*s ricevuto da %s:%d\n", (int)sizeof(command), command, inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
+			printf("Comando '\033[4m%.*s\033[0m' ricevuto da %s:%d\n", (int)sizeof(command), command, inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
 
 			/* Processamento comando */
 			if(strcmp(command, PING) == 0) {
