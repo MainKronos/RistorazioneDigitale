@@ -83,6 +83,10 @@ int main(int argc, char *argv[]){
 	/* Inizzializzazione tavoli */
 	initTavoli();
 
+	/* Inizzializzazione cucine */
+	cucine = NULL;
+	pthread_mutex_init(&mutex_cucine, NULL);
+
 	/* Inizzializzazione comande */
 	comande = NULL;
 	pthread_mutex_init(&mutex_comande, NULL);
@@ -199,6 +203,9 @@ void* socketHandler(void* arg) {
 
 	/* Disconnetto il tavolo se collegato */
 	disconnectTable(sd);
+
+	/* Rimuovo la cucina se registrata */
+	removeCucina(sd);
 
 	free(arg);
 	pthread_exit(NULL);

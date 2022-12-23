@@ -20,6 +20,13 @@
 			"binaryArgs": [
 				"1234"
 			]
+		},
+		{
+			"cwd": "/home/lorenzo/University/RistorazioneDigitale",
+			"binaryPath": "/home/lorenzo/University/RistorazioneDigitale/kd",
+			"binaryArgs": [
+				"1234"
+			]
 		}
 	]
 }

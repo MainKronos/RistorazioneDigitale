@@ -21,6 +21,12 @@ struct tavolo_sv {
 	pthread_mutex_t mutex; /* Mutex per la gestione della lista delle prenotazioni */
 };
 
+/* Informazioni sul kitchen device del SERVER */
+struct cucina_sv{
+	struct cucina_sv* next; /* Puntatore al prossimo elemento */
+	int sd; /* Socket del KitchenDevice collegato */
+};
+
 /* Informazioni sulla prenotazione del SERVER */
 struct prenotazione_sv{
 	struct prenotazione_sv* next; /* Puntatore al prossimo elemento */
@@ -43,15 +49,30 @@ struct pre_sosp{
 	len nlen; /* numero di tavoli liberi trovati */
 };
 
+/* Conversione stato_com in stringa */
+const char* stato_com_str[] = {
+	"in attesa",
+	"in preparazione",
+	"in servizio"
+};
+
+/* Stati della comanda */
+enum stato_com{
+	ATTESA,
+	PREPARAZIONE,
+	SERVIZIO
+};
+
 /* informazioni comanda del SERVER */
 struct comanda_sv{
 	struct comanda_sv* next; /* Puntatore al prossimo elemento */
-	stato_com stato; /* Stato della comanda */
+	enum stato_com stato; /* Stato della comanda */
 	len nlen; /* Numero di piatti */
 	struct piatto* p[N_PIATTI]; /* Vettore di puntatori ai piatti */
 	len q[N_PIATTI]; /* Vettore delle quantità */
 	struct tavolo_sv* t; /* Puntatore al tavolo di provenienza della comanda */
 };
+
 
 /* --- Variabili Globali --------------------------------------------------------------- */
 
@@ -63,6 +84,9 @@ pthread_mutex_t mutex_comande; /* Mutex per la gestione della lista delle comand
 
 struct pre_sosp* prenotazioni_sospese; /* Prenotazioni in sospeso */
 pthread_mutex_t mutex_prenotazioni_sospese; /* Mutex per la gestione delle prenotazioni in sospeso */
+
+struct cucina_sv* cucine; /* Lista delle cucine del server */
+pthread_mutex_t mutex_cucine; /* Mutex per la gestione della lista delle cucine */
 
 
 /* --- Comandi Server -------------------------------------------------------------------- */
@@ -123,11 +147,20 @@ int disconnectTable(int);
 /* Ritorna il tavolo associato al socket del TableDevice */
 int getTable(int, struct tavolo_sv**);
 
-/* Confronta se il codice di prenotazione di due prenotazioni è uguale */
-int cmpCodePrenotazione(struct prenotazione_sv*, struct prenotazione_sv*);
+/* Rimuove la cucina se registrata */
+int removeCucina(int);
 
-/* Confronta se il sd di due prenotazioni è uguale */
-int cmpPrenotazioneSospeso(struct pre_sosp*, struct pre_sosp*);
+/* Confronta se il codice di prenotazione è uguale */
+int cmpCodePrenotazione(const unlock_code*, const struct prenotazione_sv*);
+
+/* Confronta se il sd è uguale di una prenotazione in sospeso */
+int cmpPrenotazioneSospeso(const int*, const struct pre_sosp*);
+
+/* Confronta se il sd è uguale di una cucina */
+int cmpCucina(const int*, const struct cucina_sv*);
+
+/* Controlla se una comanda è in attesa */
+int countComandaInAttesa(struct comanda_sv*);
 
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 

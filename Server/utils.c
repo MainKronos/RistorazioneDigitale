@@ -118,13 +118,10 @@ void initTavoli(void){
 }
 
 struct pre_sosp* removePrenotazioneSospesa(int sd){
-	struct pre_sosp ps_tmp; /* Prenotazione in sospeso temporanea per il confronto */
 	struct pre_sosp* p_sosp; /* Prenotazione in sospeso trovata */
-	memset(&ps_tmp, 0, sizeof(struct pre_sosp)); /* Pulizia struttura */
-	ps_tmp.sd = sd; /* Salvataggio descrittore socket */
 
 	pthread_mutex_lock(&mutex_prenotazioni_sospese);
-	p_sosp = lRemove((void**)&prenotazioni_sospese, &ps_tmp, (cmpFun)cmpPrenotazioneSospeso); /* Ricerca prenotazione in sospeso */
+	p_sosp = lRemove((void**)&prenotazioni_sospese, &sd, (cmpFun)cmpPrenotazioneSospeso); /* Ricerca prenotazione in sospeso */
 	pthread_mutex_unlock(&mutex_prenotazioni_sospese);
 	return p_sosp;
 }
@@ -232,10 +229,25 @@ int disconnectTable(int sd){
 	return -1;
 }
 
-int cmpCodePrenotazione(struct prenotazione_sv* p_ref, struct prenotazione_sv* p_i){
-	return p_ref->code == p_i->code;
+int removeCucina(int sd){
+	pthread_mutex_lock(&mutex_cucine);
+	free(lRemove((void**)&cucine, &sd, (cmpFun)cmpCucina));
+	pthread_mutex_unlock(&mutex_cucine);
+	return 0;
 }
 
-int cmpPrenotazioneSospeso(struct pre_sosp* ps_ref, struct pre_sosp* ps_i){
-	return ps_ref->sd == ps_i->sd;
+int cmpCodePrenotazione(const unlock_code* code, const struct prenotazione_sv* p_i){
+	return *code == p_i->code;
+}
+
+int cmpPrenotazioneSospeso(const int* sd, const struct pre_sosp* ps_i){
+	return *sd == ps_i->sd;
+}
+
+int cmpCucina(const int* sd, const struct cucina_sv* c_i){
+	return *sd == c_i->sd;
+}
+
+int countComandaInAttesa(struct comanda_sv* c){
+	return c->stato == ATTESA;
 }

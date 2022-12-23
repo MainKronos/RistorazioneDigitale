@@ -34,16 +34,12 @@ int td_unlock(int sd){
 		/* Tavolo riconosciuto */
 
 		struct prenotazione_sv* p; /* Prenotazione corrispondente al codice */
-
-		struct prenotazione_sv tmp; /* Prenotazione temporanea per il test */
-		memset(&tmp, 0, sizeof(struct prenotazione_sv)); /* Pulizia */
-		tmp.code = code;
 		
 		/* Cerco il codice */
 		pthread_mutex_lock(&t->mutex);
 
 		/* Rimuovo la prenotazione dalla lista */
-		p = lRemove((void**)&t->prenotazioni, &tmp, (cmpFun)cmpCodePrenotazione);
+		p = lRemove((void**)&t->prenotazioni, &code, (cmpFun)cmpCodePrenotazione);
 
 		if(p==NULL){
 			/* Codice non trovato */

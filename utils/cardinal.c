@@ -28,22 +28,17 @@ typedef uint32_t tavolo_id;
 /* Codice di sblocco del tavolo */
 typedef uint32_t unlock_code; 
 
-/* Stato della comanda */
-typedef uint8_t stato_com; 
-
 /* Funzione di comparazione; 
 il primo parametro è il puntatore all'elemento di riferimento,
 il secondo parametro è il puntatore all'i-esimo elemento da confrontare,
 Ritorna 1 = uguale, 0 = diverso 
 */
-typedef int (*cmpFun)(void*, void*);
+typedef int (*cmpFun)(const void*, const void*);
 
-/* Conversione stato_com in stringa */
-const char* stato_com_str[] = {
-	"in attesa",
-	"in preparazione",
-	"in servizio"
-};
+/* Funzione di conteggio;
+il parametro è il puntatore all'elemento i-esimo,
+se la funzione ritorna true, il conteggio viene incrementato*/
+typedef int (*countFun)(const void*);
 
 /* Struttura lista base */
 struct list{
@@ -106,6 +101,9 @@ const cmd CL_BOOK = "book";
 /* Richiesta del KitchenDevice del numero di comande in attesa */
 const cmd KD_GETCOMLEN = "getcomlen";
 
+/* Invio aggiornamento sul numero di comande in attesa dal server alla cucina */
+const cmd SV_NUMCOM = "numcom";
+
 /* Invio aggiornamento comanda dal server al tavolo */
 const cmd SV_UPDCOM = "updcom";
 
@@ -130,8 +128,17 @@ il terzo è la funzione di comparazione (NULL = default),
 ritorna il puntatore all'elemento rimosso, NULL altrimenti */
 void* lRemove(void**, void*, cmpFun);
 
+/* Conta gli elementi nella lista,
+il primo parametro è la testa,
+il secondo è la funzione di conteggio (NULL = default),
+ritorna il numero di elementi contati */
+int lCount(void**, countFun);
+
 /* Funzione di comparazione di default */
-int defaultCmpFun(void*, void*);
+int defaultCmpFun(const void*, const void*);
+
+/* Funzione di conteggio di default */
+int defaultCountFun(const void*);
 
 /* Aggiunge un elemento alla lista */
 int lAppend(void** head, void* elem){
@@ -186,8 +193,28 @@ void* lRemove(void** head, void* elem, cmpFun cmp){
 	return NULL;
 }
 
+int lCount(void** head, countFun count){
+	struct list* tmp;
+	int i;
+	
+	if(head == NULL)
+		return 0;
 
-int defaultCmpFun(void* a, void* b){
+	if (count == NULL)
+		count = defaultCountFun;
+	
+	for(tmp = *(struct list**)head; tmp != NULL; tmp = tmp->next){
+		if(count(tmp)) i++;
+	}
+	
+	return i;
+}
+
+int defaultCountFun(const void* a){
+	return a != NULL;
+}
+
+int defaultCmpFun(const void* a, const void* b){
 	return a == b;
 }
 

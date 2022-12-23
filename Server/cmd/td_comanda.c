@@ -11,6 +11,9 @@ int td_comanda(int sd){
 	tavolo_id tid; /* Id del tavolo */
 	struct comanda_sv* new_com; /* Nuova comanda */
 
+	len comanda_da_notificare; /* Comanda da notificare  a tutte le cucine */
+	struct cucina_sv* cuc; /* Cucina da notificare */
+
 	memset(r, 0, sizeof(response)); /* Pulizia risposta */
 	new_com = NULL;
 
@@ -78,7 +81,7 @@ int td_comanda(int sd){
 		if(ret != -1){ 
 			char buf1[10] = ""; /* Buffer per la stampa */
 			char buf2[256] = ""; /* Buffer per la stampa */
-			new_com->stato = 0; /* Stato comanda: 0 = in attesa */
+			new_com->stato = ATTESA; /* Stato comanda: 0 = in attesa */
 
 			/* Inserimento comanda nella lista */
 			pthread_mutex_lock(&mutex_comande);
@@ -97,6 +100,16 @@ int td_comanda(int sd){
 	}
 
 	send(sd, r, sizeof(response), 0); /* Invio risposta */
+
+
+	/* Invio notifica di una nuova comanda a tutte le cunine ***********************************/
+	comanda_da_notificare = htonl(1); /* 1 = una nuova comanda in più */
+	pthread_mutex_lock(&mutex_cucine);
+	for(cuc=cucine; cuc != NULL; cuc=cuc->next){
+		send(cuc->sd, SV_NUMCOM, sizeof(cmd), 0);
+		send(cuc->sd, &comanda_da_notificare, sizeof(comanda_da_notificare), 0);
+	}
+	pthread_mutex_unlock(&mutex_cucine);
 
 	return 0;
 }
