@@ -49,13 +49,6 @@ struct pre_sosp{
 	len nlen; /* numero di tavoli liberi trovati */
 };
 
-/* Conversione stato_com in stringa */
-const char* stato_com_str[] = {
-	"in attesa",
-	"in preparazione",
-	"in servizio"
-};
-
 /* Stati della comanda */
 enum stato_com{
 	ATTESA,
@@ -63,10 +56,18 @@ enum stato_com{
 	SERVIZIO
 };
 
+/* Conversione stato_com in stringa */
+const char* stato_com_str[] = {
+	"in attesa",
+	"in preparazione",
+	"in servizio"
+};
+
 /* informazioni comanda del SERVER */
 struct comanda_sv{
 	struct comanda_sv* next; /* Puntatore al prossimo elemento */
 	enum stato_com stato; /* Stato della comanda */
+	num_com num; /* Numero della comanda relativo al tavolo */
 	len nlen; /* Numero di piatti */
 	struct piatto* p[N_PIATTI]; /* Vettore di puntatori ai piatti */
 	len q[N_PIATTI]; /* Vettore delle quantità */
@@ -119,6 +120,9 @@ int cl_book(int);
 /* Risponde al kitchenDevice con il numero di comande in attesa */
 int kd_getcomlen(int);
 
+/* Invia la comanda al KitchenDevice */
+int kd_take(int);
+
 /* --- Funzioni di supporto ------------------- */
 
 /* Inizializza il menù */
@@ -160,7 +164,13 @@ int cmpPrenotazioneSospeso(const int*, const struct pre_sosp*);
 int cmpCucina(const int*, const struct cucina_sv*);
 
 /* Controlla se una comanda è in attesa */
-int countComandaInAttesa(struct comanda_sv*);
+int cmpComandaStato(const enum stato_com*, const struct comanda_sv*);
+
+/* Notifica tutte le cucine che è avvenuta una variazione nel numero di comande in attesa */
+int notificaCucine(len);
+
+/* Notifica il tavolo che la comanda ha cambiato stato */
+int notificaTavolo(struct comanda_sv*);
 
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 
@@ -172,6 +182,7 @@ int countComandaInAttesa(struct comanda_sv*);
 #include "cmd/cl_book.c"
 #include "cmd/cl_find.c"
 #include "cmd/kd_getcomlen.c"
+#include "cmd/kd_take.c"
 
 /* --- FUNZIONI DI SUPPORTO --------------------------------------------------------------------------------------- */
 

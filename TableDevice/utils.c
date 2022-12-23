@@ -47,3 +47,9 @@ int p_comToComanda(struct p_com* com_ptr, struct comanda* comanda){
 	
 	return 0;
 }
+
+int printNotifica(void){
+	printf("%s\n",notifica);
+	memset(notifica, 0, sizeof(notifica));
+	return 0;
+}

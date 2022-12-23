@@ -13,6 +13,7 @@ int comanda(int sd){
 	response r; /* risposta del server */
 	len tmp; /* variabile temporanea per l'invio */
 	tavolo_id tmp_t; /* variabile temporanea per l'invio */
+	num_com tmp_n; /* variabile temporanea per l'invio del numero della comanda */
 
 	printf("\033[H\033[J"); /* Pulizia schermo */
 
@@ -70,6 +71,13 @@ int comanda(int sd){
 	tmp_t = htonl(com.tid);
 	if(send(sd, &tmp_t, sizeof(tmp_t), 0) < 0){
 		perror("Errore in fase di invio identificativo tavolo");
+		return -1;
+	}
+
+	/* Invio il numero della comanda relativo al tavolo */
+	tmp_n = htons(NC++);
+	if(send(sd, &tmp_n, sizeof(tmp_n), 0) < 0){
+		perror("Errore in fase di invio numero comanda");
 		return -1;
 	}
 

@@ -8,6 +8,7 @@
 int kd_getcomlen(int sd){
 	struct cucina_sv* c; /* Cucina */
 	len n_com; /* Numero comande in attesa */
+	enum stato_com stato = ATTESA; /* Stato comanda */
 
 	struct sockaddr_in cl_addr; /* Indirizzo client */
 	socklen_t addrlen = sizeof(cl_addr);
@@ -28,7 +29,7 @@ int kd_getcomlen(int sd){
 		printf("Nuovo KitchenDevice %s:%d registrato\n",  inet_ntoa(cl_addr.sin_addr), ntohs(cl_addr.sin_port));
 	}
 
-	n_com = lCount((void**)&comande, (countFun)countComandaInAttesa);
+	n_com = lCount((void**)&comande, &stato, (cmpFun)cmpComandaStato);
 
 	/* Invio numero comande in attesa */
 	n_com = htonl(n_com);

@@ -19,7 +19,7 @@ int connecttable(int sd){
 	tmp = ntohl(tmp);
 
 	/* Se l'ID del tavolo è -1 significa che non ci sono più tavoli liberi da associare */
-	if(tmp == (tavolo_id)-1){
+	if((int)tmp == -1){
 		return -1;
 	}
 

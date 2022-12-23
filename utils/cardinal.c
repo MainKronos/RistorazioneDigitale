@@ -22,6 +22,9 @@ typedef int32_t len;
 /* Risposta del server */
 typedef char response[2048]; 
 
+/* Numero della comanda */
+typedef uint16_t num_com; 
+
 /* Identificativo del tavolo */
 typedef uint32_t tavolo_id;
 
@@ -34,11 +37,6 @@ il secondo parametro è il puntatore all'i-esimo elemento da confrontare,
 Ritorna 1 = uguale, 0 = diverso 
 */
 typedef int (*cmpFun)(const void*, const void*);
-
-/* Funzione di conteggio;
-il parametro è il puntatore all'elemento i-esimo,
-se la funzione ritorna true, il conteggio viene incrementato*/
-typedef int (*countFun)(const void*);
 
 /* Struttura lista base */
 struct list{
@@ -69,7 +67,12 @@ struct prenotazione{
 
 /* Informazioni sulla comanda per il trasferimento */
 struct comanda{
+	struct comanda* next; /* Puntatore alla prossima comanda */
+
+	/* Informazioni traferite: */
+
 	tavolo_id tid; /* Identificativo del tavolo */
+	num_com num; /* Numero della comanda relativo al tavolo */
 	len nlen; /* Numero di piatti */
 	type* p; /* Puntatore al vettore dei codici dei piatti */
 	len* q; /* Puntatore al vettore delle quantità */
@@ -104,8 +107,11 @@ const cmd KD_GETCOMLEN = "getcomlen";
 /* Invio aggiornamento sul numero di comande in attesa dal server alla cucina */
 const cmd SV_NUMCOM = "numcom";
 
+/* Richiesta dal KitchenDevice della comanda in attesa da più tempo */
+const cmd KD_TAKE = "take";
+
 /* Invio aggiornamento comanda dal server al tavolo */
-const cmd SV_UPDCOM = "updcom";
+const cmd SV_UPTCOM = "uptcom";
 
 /* --- UTILS ------------------------------------------------------------------------- */
 
@@ -132,13 +138,10 @@ void* lRemove(void**, void*, cmpFun);
 il primo parametro è la testa,
 il secondo è la funzione di conteggio (NULL = default),
 ritorna il numero di elementi contati */
-int lCount(void**, countFun);
+int lCount(void**, void*, cmpFun);
 
 /* Funzione di comparazione di default */
 int defaultCmpFun(const void*, const void*);
-
-/* Funzione di conteggio di default */
-int defaultCountFun(const void*);
 
 /* Aggiunge un elemento alla lista */
 int lAppend(void** head, void* elem){
@@ -193,25 +196,21 @@ void* lRemove(void** head, void* elem, cmpFun cmp){
 	return NULL;
 }
 
-int lCount(void** head, countFun count){
+int lCount(void** head, void* elem, cmpFun cmp){
 	struct list* tmp;
 	int i;
 	
 	if(head == NULL)
 		return 0;
 
-	if (count == NULL)
-		count = defaultCountFun;
+	if (cmp == NULL)
+		cmp = defaultCmpFun;
 	
 	for(tmp = *(struct list**)head; tmp != NULL; tmp = tmp->next){
-		if(count(tmp)) i++;
+		if(cmp(elem, tmp)) i++;
 	}
 	
 	return i;
-}
-
-int defaultCountFun(const void* a){
-	return a != NULL;
 }
 
 int defaultCmpFun(const void* a, const void* b){

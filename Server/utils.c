@@ -248,6 +248,42 @@ int cmpCucina(const int* sd, const struct cucina_sv* c_i){
 	return *sd == c_i->sd;
 }
 
-int countComandaInAttesa(struct comanda_sv* c){
-	return c->stato == ATTESA;
+int cmpComandaStato(const enum stato_com* stato, const struct comanda_sv* c_i){
+	return *stato == c_i->stato;
+}
+
+int notificaCucine(len variazione){
+	len tmp; /* numero comande da notificare a tutte le cucine */
+	struct cucina_sv* cuc; /* Cucina da notificare */
+
+	/* Invio notifica di una nuova comanda a tutte le cucine */
+	tmp = htonl(variazione); /* 1 = una nuova comanda in più */
+	pthread_mutex_lock(&mutex_cucine);
+	for(cuc=cucine; cuc != NULL; cuc=cuc->next){
+		send(cuc->sd, SV_NUMCOM, sizeof(cmd), 0);
+		send(cuc->sd, &tmp, sizeof(tmp), 0);
+	}
+	pthread_mutex_unlock(&mutex_cucine);
+
+	return 0;
+}
+
+int notificaTavolo(struct comanda_sv* comanda){
+	struct tavolo_sv* tav; /* Tavolo da notificare */
+
+	response r; /* Risposta da inviare al tavolo */
+
+	memset(&r, 0, sizeof(response)); /* Pulizia */
+
+	sprintf(r, "com%hu %s", comanda->num, stato_com_str[comanda->stato]);
+
+	/* Invio notifica di una nuova comanda al tavolo */
+	tav = comanda->t;
+
+	send(tav->sd, SV_UPTCOM, sizeof(cmd), 0);
+	send(tav->sd, r, sizeof(response), 0);
+
+	printf("%s\n",r);
+
+	return 0;
 }

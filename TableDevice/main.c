@@ -56,6 +56,8 @@ int main(int argc, char *argv[]){
 	/* Aggiungo il socket al set principale */
 	FD_SET(sd, &master);
 
+	NC = 0; /* Numero di comande inviate */
+
 	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
 	if(!connecttable(sd)){ 
@@ -71,6 +73,7 @@ int main(int argc, char *argv[]){
 				printf("Inserisci codice di sblocco: \033[s\n");
 			}else{
 				printf("***************************** BENVENUTO *****************************\n");
+				printNotifica();
 				printf("Digita un comando: \033[s\n"); 
 				printf("\n");
 				printf("> help		--> mostra i dettagli dei comandi\n");
@@ -122,8 +125,20 @@ int main(int argc, char *argv[]){
 
 				fflush(stdin);
 			} else if(FD_ISSET(sd, &read_fds)){
-				/* Se è arrivato qualcosa dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
-				break;
+				cmd command; /* Comando ricevuto */
+
+				/* Leggo il comando */
+				if((ret = read(sd, command, sizeof(cmd))) <= 0){
+					if(ret < 0) perror("Errore in fase di lettura");
+					break;
+				}
+
+				if(strcmp(command, SV_UPTCOM) == 0){
+					if(uptcom(sd)) break;
+				}else{
+					/* Se è arrivato qualcosa di diverso dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
+					break;
+				}	
 			}
 		}
 	}

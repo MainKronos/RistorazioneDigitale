@@ -3,7 +3,12 @@
 
 #include "cardinal.c"
 
+/* --- COSTANTI ------------------------------------------------------------------------- */
+
 tavolo_id TID; /* Identificativo del tavolo */
+num_com NC; /* Numero delle comande inviate */
+
+response notifica; /* Messaggio di notifica */
 
 /* --- Strutture ------------------------------------------------------------------- */
 
@@ -31,6 +36,9 @@ int menu(int);
 /* Invia una comanda al server */
 int comanda(int);
 
+/* Riceve aggiornamenti delle comande dal server */
+int uptcom(int);
+
 /* --- Utility --------------------------------------------------------------------- */
 
 /* Compara 2 piatti, se hanno lo stesso codice allora sono uguali */
@@ -42,11 +50,15 @@ int addPiattoToComanda(struct p_com**, type, len);
 /* Converte la lista comanda in una comanda */
 int p_comToComanda(struct p_com*, struct comanda*);
 
+/* Stampa la notifica */
+int printNotifica(void);
+
 #include "cmd/connecttable.c"
 #include "cmd/unlocktable.c"
 #include "cmd/help.c"
 #include "cmd/menu.c"
 #include "cmd/comanda.c"
+#include "cmd/uptcom.c"
 
 #include "utils.c"
 

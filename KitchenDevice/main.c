@@ -8,13 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "cardinal.c"
-
-/* Riceve dal server il numero di comande in attesa */
-int getNumComande(int, len*);
-
-/* Aggiurna il numero di comande in attesa */
-int uptNumComande(int, len*);
+#include "main.h"
 
 int main(int argc, char *argv[]){
 
@@ -24,7 +18,7 @@ int main(int argc, char *argv[]){
 	struct sockaddr_in sv_addr; /* Indirizzo server */
 	int sd; /* Descrittore Socket */
 	int ret; /* Valore di ritorno */
-	len n_com; /* Numero di comande in attesa */
+	
 	/* ----------------------------------------------------------------------------- */
 
 	/* Controllo comando*/
@@ -60,7 +54,7 @@ int main(int argc, char *argv[]){
 	FD_SET(sd, &master);
 
 	n_com = 0;
-	if(!getNumComande(sd, &n_com)){
+	if(!getcomlen(sd)){
 
 		/* --- Ciclo principale -------------------------------------------------------- */
 		while(1){
@@ -97,7 +91,7 @@ int main(int argc, char *argv[]){
 				getchar();
 				if(ret > 0){
 					if(strcmp(command, "take") == 0){
-						/* if(take(sd)) break; */
+						if(take(sd)) break;
 					}
 					else if(strcmp(command, "show") == 0){
 						/* if(show(sd)) break; */
@@ -119,7 +113,7 @@ int main(int argc, char *argv[]){
 				}
 
 				if(strcmp(command, SV_NUMCOM) == 0){
-					if(uptNumComande(sd, &n_com)) break;
+					if(uptNumComande(sd)) break;
 				}else{
 					/* Se è arrivato qualcosa di diverso dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
 					break;
@@ -134,40 +128,6 @@ int main(int argc, char *argv[]){
 	/* Chiusura collegamento */
 	close(sd);
 	printf("Kitchen Device scollegato.\n");
-
-	return 0;
-}
-
-/* --- Funzioni ------------------------------------------------------------------- */
-
-int getNumComande(int sd, len *n_com){
-	int ret;
-	len tmp;
-
-	/* Invio richiesta */
-	if(send(sd, KD_GETCOMLEN, sizeof(cmd), 0) < 0){
-		perror("Errore in fase di invio");
-		return -1;
-	}
-
-	if((ret = read(sd, &tmp, sizeof(len))) <= 0){
-		if(ret < 0) perror("Errore in fase di lettura");
-		return -1;
-	}
-	*n_com = ntohl(tmp);
-
-	return 0;
-}
-
-int uptNumComande(int sd, len *n_com){
-	int ret;
-	len tmp;
-
-	if((ret = read(sd, &tmp, sizeof(len))) <= 0){
-		if(ret < 0) perror("Errore in fase di lettura");
-		return -1;
-	}
-	*n_com += ntohl(tmp);
 
 	return 0;
 }

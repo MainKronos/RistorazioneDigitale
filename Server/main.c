@@ -189,6 +189,8 @@ void* socketHandler(void* arg) {
 				if(cl_book(sd)) break;
 			}else if(strcmp(command, KD_GETCOMLEN) == 0) {
 				if(kd_getcomlen(sd)) break;
+			}else if(strcmp(command, KD_TAKE) == 0) {
+				if(kd_take(sd)) break;
 			}
 
 		}

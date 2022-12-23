@@ -19,6 +19,7 @@ int td_getid(int sd){
 	}
 
 	/* Invio identificativo del tavolo libero trovato */
+	id = htonl(id);
 	if(send(sd, &id, sizeof(id), 0) < 0){
 		perror("td_getid");
 		return -1;

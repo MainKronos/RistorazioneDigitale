@@ -11,9 +11,6 @@ int td_comanda(int sd){
 	tavolo_id tid; /* Id del tavolo */
 	struct comanda_sv* new_com; /* Nuova comanda */
 
-	len comanda_da_notificare; /* Comanda da notificare  a tutte le cucine */
-	struct cucina_sv* cuc; /* Cucina da notificare */
-
 	memset(r, 0, sizeof(response)); /* Pulizia risposta */
 	new_com = NULL;
 
@@ -41,10 +38,19 @@ int td_comanda(int sd){
 		memset(new_com, 0, sizeof(struct comanda_sv)); /* Pulizia struttura */
 
 		new_com->t = t; /* Tavolo di provenienza della comanda */
+
+		/* Ricezione numero della comanda */
+		if((ret = recv(sd, &new_com->num, sizeof(num_com), 0)) <= 0){
+			if(ret<0) perror("td_comanda");
+			free(new_com);
+			return -1;
+		}
+		new_com->num = ntohs(new_com->num);
 		
 		/* Ricezione numero elementi */
 		if((ret = recv(sd, &new_com->nlen, sizeof(new_com->nlen), 0)) <= 0){
 			if(ret<0) perror("td_comanda");
+			free(new_com);
 			return -1;
 		}
 		new_com->nlen = ntohl(new_com->nlen);
@@ -96,20 +102,13 @@ int td_comanda(int sd){
 				strcat(buf2, buf1);
 			}
 			printf("Comanda ricevuta dal tavolo T%d di %d piatti:%s\n", t->inf.id, new_com->nlen, buf2);
+			notificaCucine(1); /* Notifica cucine (1 = nuova comanda ricevuta) */
 		}
 	}
 
 	send(sd, r, sizeof(response), 0); /* Invio risposta */
 
-
-	/* Invio notifica di una nuova comanda a tutte le cunine ***********************************/
-	comanda_da_notificare = htonl(1); /* 1 = una nuova comanda in più */
-	pthread_mutex_lock(&mutex_cucine);
-	for(cuc=cucine; cuc != NULL; cuc=cuc->next){
-		send(cuc->sd, SV_NUMCOM, sizeof(cmd), 0);
-		send(cuc->sd, &comanda_da_notificare, sizeof(comanda_da_notificare), 0);
-	}
-	pthread_mutex_unlock(&mutex_cucine);
-
+	
+	
 	return 0;
 }
