@@ -20,6 +20,7 @@ int main(int argc, char *argv[]){
 	fd_set read_fds; /* Set di lettura gestito dalla select */
 	struct sockaddr_in sv_addr; /* Indirizzo server */
 	int sd; /* Descrittore Socket */
+	int sd_notify; /* Descrittore Socket per la notifica */
 	int ret; /* Valore di ritorno */
 	int lock; /* Blocco del tavolo */
 	/* ----------------------------------------------------------------------------- */
@@ -37,6 +38,9 @@ int main(int argc, char *argv[]){
 	/* Creazione socket */
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 
+	/* Creazione socket per la notifica */
+	sd_notify = socket(AF_INET, SOCK_STREAM, 0);
+
 	/* Creazione indirizzo del server */
 	memset(&sv_addr, 0, sizeof(sv_addr));
 	sv_addr.sin_family = AF_INET;
@@ -44,8 +48,10 @@ int main(int argc, char *argv[]){
 	sv_addr.sin_port = htons(atoi(argv[1]));
 
 	/* Connessione al server */
-	ret = connect(sd, (struct sockaddr *)&sv_addr, sizeof(sv_addr));
-	if (ret < 0){
+	if(
+		(ret = connect(sd, (struct sockaddr *)&sv_addr, sizeof(sv_addr))) < 0 ||
+		(ret = connect(sd_notify, (struct sockaddr *)&sv_addr, sizeof(sv_addr))) < 0
+	){
 		perror("Errore in fase di connessione");
 		exit(-1);
 	}
@@ -56,11 +62,14 @@ int main(int argc, char *argv[]){
 	/* Aggiungo il socket al set principale */
 	FD_SET(sd, &master);
 
+	/* Aggiungo il socket per la notifica al set principale */
+	FD_SET(sd_notify, &master);
+
 	NC = 0; /* Numero di comande inviate */
 
 	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
-	if(!connecttable(sd)){ 
+	if(!connecttable(sd_notify)){ 
 		lock = 0; /* !ALERT: Blocco il tavolo, mettere 0 in fase di test, altrimenti 1 */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
@@ -88,7 +97,7 @@ int main(int argc, char *argv[]){
 			read_fds = master;
 
 			/* Attendo un evento */
-			ret = select(sd+1, &read_fds, NULL, NULL, NULL);
+			ret = select(sd_notify+1, &read_fds, NULL, NULL, NULL);
 			if (ret < 0){
 				perror("Errore in fase di select");
 				exit(-1);
@@ -124,21 +133,27 @@ int main(int argc, char *argv[]){
 				}
 
 				fflush(stdin);
-			} else if(FD_ISSET(sd, &read_fds)){
-				cmd command; /* Comando ricevuto */
+			} else if(FD_ISSET(sd_notify, &read_fds)){
+				if(!lock){ /* Se il tavolo non è bloccato */
 
-				/* Leggo il comando */
-				if((ret = read(sd, command, sizeof(cmd))) <= 0){
-					if(ret < 0) perror("Errore in fase di lettura");
-					break;
+					cmd command; /* Comando ricevuto */
+
+					/* Leggo il comando */
+					if((ret = read(sd_notify, command, sizeof(cmd))) <= 0){
+						if(ret < 0) perror("Errore in fase di lettura");
+						break;
+					}
+
+					if(strcmp(command, SV_UPTCOM) == 0){
+						if(uptcom(sd_notify)) break;
+					}else{
+						/* Se è arrivato qualcosa di diverso dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
+						break;
+					}	
 				}
-
-				if(strcmp(command, SV_UPTCOM) == 0){
-					if(uptcom(sd)) break;
-				}else{
-					/* Se è arrivato qualcosa di diverso dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
-					break;
-				}	
+			}else{
+				/* Se è arrivato qualcosa di diverso dal socket sicuramente è un errore o è la chiusura del socket, quindi chiudo la connessione */
+				break;
 			}
 		}
 	}

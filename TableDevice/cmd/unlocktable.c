@@ -4,6 +4,7 @@ int unlocktable(int sd, int* lock, unlock_code code){
 	int ret; /* Valore di ritorno */
 	uint8_t r_lock; /* Variabile per la risposta di unlock */
 	response res; /* Variabile per la risposta del server */
+	tavolo_id tid; /* Id del tavolo per l'invio */
 
 	printf("\033[H\033[J"); /* Pulizia schermo */
 	
@@ -13,6 +14,12 @@ int unlocktable(int sd, int* lock, unlock_code code){
 		return -1;
 	}
 
+	/* Invio id tavolo */
+	tid = htonl(TID);
+	if(send(sd, &tid, sizeof(tavolo_id), 0) < 0){ 
+		perror("Errore in fase di invio dell'id del tavolo");
+		return -1;
+	}
 
 	/* Invio codice di sblocco */
 	code = htonl(code);

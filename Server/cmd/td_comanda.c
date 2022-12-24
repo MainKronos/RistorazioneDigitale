@@ -21,16 +21,17 @@ int td_comanda(int sd){
 	}
 	tid = ntohl(tid);
 
-	if(getTable(sd, &t) || t->inf.id != tid){
+	if(tid >= N_TAVOLI){
 		/* Tavolo non riconosciuto */
 
 		strcpy(r, "Il tavolo non è stato riconosciuto");
 	}else{
 		/* Tavolo riconosciuto */
-
 		type code; /* variabile temporanea per il codice del piatto */
 		int i; /* Indice */
 		int j; /* Indice */
+
+		t = &tavoli[tid]; /* Tavolo */
 
 		ret = 0;
 

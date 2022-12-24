@@ -11,6 +11,7 @@ int td_unlock(int sd){
 	unlock_code code; /* Codice di sblocco */
 	struct tavolo_sv* t; /* Tavolo */
 	response r; /* Risposta del server */
+	tavolo_id tid; /* Id del tavolo */
 
 	struct sockaddr_in cl_addr; /* Indirizzo client */
 	socklen_t addrlen = sizeof(cl_addr);
@@ -19,6 +20,13 @@ int td_unlock(int sd){
 	lock = 1;
 	memset(r, 0, sizeof(response)); /* Pulizia risposta */
 
+	/* Ricezione tavolo */
+	if((ret = recv(sd, &tid, sizeof(tid), 0)) <= 0){
+		if(ret<0) perror("td_unlock");
+		return -1;
+	}
+	tid = ntohl(tid);
+
 	/* Ricezione codice */
 	if((ret = recv(sd, &code, sizeof(code), 0)) <= 0){
 		if(ret<0) perror("td_unlock");
@@ -26,14 +34,16 @@ int td_unlock(int sd){
 	}
 	code = ntohl(code);
 
-	if(getTable(sd, &t)){
+	if(tid >= N_TAVOLI){
 		/* Tavolo non riconosciuto */
 		lock = 1;
 		strcpy(r, "Il tavolo non è stato riconosciuto");
 	}else{
 		/* Tavolo riconosciuto */
-
 		struct prenotazione_sv* p; /* Prenotazione corrispondente al codice */
+
+		
+		t = &tavoli[tid]; /* Tavolo */
 		
 		/* Cerco il codice */
 		pthread_mutex_lock(&t->mutex);

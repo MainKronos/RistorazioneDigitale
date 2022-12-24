@@ -148,9 +148,6 @@ int connectTable(int, struct tavolo_sv**);
 /* Disconnette il socket del TableDevice dal tavolo */
 int disconnectTable(int);
 
-/* Ritorna il tavolo associato al socket del TableDevice */
-int getTable(int, struct tavolo_sv**);
-
 /* Rimuove la cucina se registrata */
 int removeCucina(int);
 

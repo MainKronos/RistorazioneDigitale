@@ -195,23 +195,6 @@ int connectTable(int sd, struct tavolo_sv** t){
 	return -1;
 }
 
-int getTable(int sd, struct tavolo_sv** t){
-	int i; /* Indice */
-
-	for(i=0; i<N_TAVOLI; i++){
-		pthread_mutex_lock(&tavoli[i].mutex);
-		if(tavoli[i].sd == sd){
-			*t = &tavoli[i];
-			pthread_mutex_unlock(&tavoli[i].mutex);
-			return 0;
-		}else{
-			pthread_mutex_unlock(&tavoli[i].mutex);
-		}
-	}
-
-	return -1;
-}
-
 int disconnectTable(int sd){
 	int i; /* Indice */
 
@@ -275,10 +258,10 @@ int notificaTavolo(struct comanda_sv* comanda){
 
 	memset(&r, 0, sizeof(response)); /* Pulizia */
 
-	sprintf(r, "com%hu %s", comanda->num, stato_com_str[comanda->stato]);
+	tav = comanda->t;
+	sprintf(r, "T%d com%hu %s", tav->inf.id, comanda->num, stato_com_str[comanda->stato]);
 
 	/* Invio notifica di una nuova comanda al tavolo */
-	tav = comanda->t;
 
 	send(tav->sd, SV_UPTCOM, sizeof(cmd), 0);
 	send(tav->sd, r, sizeof(response), 0);
