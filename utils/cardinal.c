@@ -1,5 +1,5 @@
 /*********************************************************************
- * Cardinal - File cardine del progetto                              *
+ * Cardinal - File principale del progetto                              *
  *********************************************************************/
 
 #ifndef my_header
@@ -65,14 +65,21 @@ struct prenotazione{
 	time_t datetime; /* Data e ora della prenotazione */
 };
 
+/* Informazioni MINIME sulla comanda per il trasferimento */
+struct comanda_lite{
+	/* Informazioni traferite: */
+
+	tavolo_id tid; /* Identificativo del tavolo */
+	num_com num; /* Numero della comanda relativo al tavolo */
+};
+
 /* Informazioni sulla comanda per il trasferimento */
 struct comanda{
 	struct comanda* next; /* Puntatore alla prossima comanda */
 
 	/* Informazioni traferite: */
 
-	tavolo_id tid; /* Identificativo del tavolo */
-	num_com num; /* Numero della comanda relativo al tavolo */
+	struct comanda_lite inf; /* Informazioni MINIME sulla comanda */
 	len nlen; /* Numero di piatti */
 	type* p; /* Puntatore al vettore dei codici dei piatti */
 	len* q; /* Puntatore al vettore delle quantità */
@@ -109,6 +116,9 @@ const cmd SV_NUMCOM = "numcom";
 
 /* Richiesta dal KitchenDevice della comanda in attesa da più tempo */
 const cmd KD_TAKE = "take";
+
+/* Notifica al server che una comanda è in servizio */
+const cmd KD_READY = "ready";
 
 /* Invio aggiornamento comanda dal server al tavolo */
 const cmd SV_UPTCOM = "uptcom";

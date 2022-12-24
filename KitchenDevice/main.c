@@ -77,7 +77,7 @@ int main(int argc, char *argv[]){
 			printf("\n");
 			printf("> take		--> accetta una comanda\n");
 			printf("> show		--> mostra le comande accettate (in preparazione)\n");
-			printf("> set		--> imposta lo stato della comanda\n");
+			printf("> ready		--> imposta lo stato della comanda\n");
 
 			printf("\033[u");
 			fflush(stdout);
@@ -103,10 +103,10 @@ int main(int argc, char *argv[]){
 						if(take(sd)) break;
 					}
 					else if(strcmp(command, "show") == 0){
-						/* if(show(sd)) break; */
+						if(show()) break;
 					}
-					else if(strcmp(command, "set") == 0){
-						/* set(sd); */
+					else if(strcmp(command, "ready") == 0){
+						ready(sd);
 					}
 					
 				}

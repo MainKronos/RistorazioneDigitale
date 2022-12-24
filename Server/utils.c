@@ -259,7 +259,7 @@ int notificaTavolo(struct comanda_sv* comanda){
 	memset(&r, 0, sizeof(response)); /* Pulizia */
 
 	tav = comanda->t;
-	sprintf(r, "T%d com%hu %s", tav->inf.id, comanda->num, stato_com_str[comanda->stato]);
+	sprintf(r, "com%hu T%d %s", comanda->num, tav->inf.id, stato_com_str[comanda->stato]);
 
 	/* Invio notifica di una nuova comanda al tavolo */
 
@@ -267,6 +267,13 @@ int notificaTavolo(struct comanda_sv* comanda){
 	send(tav->sd, r, sizeof(response), 0);
 
 	printf("%s\n",r);
+
+	return 0;
+}
+
+int cmpComandaLite(const struct comanda_lite* com, const struct comanda_sv* com_i){
+	if(com->num == com_i->num && com->tid == com_i->t->inf.id)
+		return 1;
 
 	return 0;
 }

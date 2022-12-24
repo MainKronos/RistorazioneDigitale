@@ -34,16 +34,16 @@ int take(int sd){
 		new_com = malloc(sizeof(struct comanda));
 		memset(new_com, 0, sizeof(struct comanda));
 
-		new_com->tid = tid;
+		new_com->inf.tid = tid;
 
 		/* Ricezione id comanda */
-		if((ret = read(sd, &new_com->num, sizeof(num_com))) <= 0){
+		if((ret = read(sd, &new_com->inf.num, sizeof(num_com))) <= 0){
 			if(ret < 0) perror("Errore in fase di lettura");
 			return -1;
 		}
-		new_com->num = ntohs(new_com->num);
+		new_com->inf.num = ntohs(new_com->inf.num);
 
-		printf("Com%d T%d\n", new_com->num, new_com->tid);
+		printf("Com%d T%d\n", new_com->inf.num, new_com->inf.tid);
 
 		/* Ricezione numero piatti */
 		if((ret = read(sd, &nlen, sizeof(len))) <= 0){

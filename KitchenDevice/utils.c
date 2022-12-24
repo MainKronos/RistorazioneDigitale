@@ -12,3 +12,8 @@ int uptNumComande(int sd){
 
 	return 0;
 }
+
+int cmpComandaLite(const struct comanda_lite* com, const struct comanda* com_i){
+	if(com->tid == com_i->inf.tid && com->num == com_i->inf.num) return 1;
+	return 0;
+}

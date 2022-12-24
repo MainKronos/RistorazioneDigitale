@@ -191,6 +191,8 @@ void* socketHandler(void* arg) {
 				if(kd_getcomlen(sd)) break;
 			}else if(strcmp(command, KD_TAKE) == 0) {
 				if(kd_take(sd)) break;
+			}else if(strcmp(command, KD_READY) == 0) {
+				if(kd_ready(sd)) break;
 			}
 
 		}

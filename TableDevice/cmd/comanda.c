@@ -55,7 +55,7 @@ int comanda(int sd){
 
 	memset(&com, 0, sizeof(com)); /* Pulizia struttura */
 	com.nlen = n_piatti;
-	com.tid = TID;
+	com.inf.tid = TID;
 	p_comToComanda(com_ptr, &com);
 
 	com_ptr = NULL; /* Pulizia lista comanda */
@@ -68,7 +68,7 @@ int comanda(int sd){
 	}
 
 	/* Invio identificativo tavolo */
-	tmp_t = htonl(com.tid);
+	tmp_t = htonl(com.inf.tid);
 	if(send(sd, &tmp_t, sizeof(tmp_t), 0) < 0){
 		perror("Errore in fase di invio identificativo tavolo");
 		return -1;

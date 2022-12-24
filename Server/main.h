@@ -123,6 +123,9 @@ int kd_getcomlen(int);
 /* Invia la comanda al KitchenDevice */
 int kd_take(int);
 
+/* Riceve dal KitchenDevice che una comanda è pronta */
+int kd_ready(int);
+
 /* --- Funzioni di supporto ------------------- */
 
 /* Inizializza il menù */
@@ -169,6 +172,9 @@ int notificaCucine(len);
 /* Notifica il tavolo che la comanda ha cambiato stato */
 int notificaTavolo(struct comanda_sv*);
 
+/* Confronta una comanda_sv con una comanda_lite */
+int cmpComandaLite(const struct comanda_lite*, const struct comanda_sv*);
+
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 
 #include "cmd/ping.c"
@@ -180,6 +186,7 @@ int notificaTavolo(struct comanda_sv*);
 #include "cmd/cl_find.c"
 #include "cmd/kd_getcomlen.c"
 #include "cmd/kd_take.c"
+#include "cmd/kd_ready.c"
 
 /* --- FUNZIONI DI SUPPORTO --------------------------------------------------------------------------------------- */
 
