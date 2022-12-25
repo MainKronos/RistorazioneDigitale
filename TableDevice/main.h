@@ -8,6 +8,8 @@
 tavolo_id TID; /* Identificativo del tavolo */
 num_com NC; /* Numero delle comande inviate */
 
+int lock; /* Blocco del tavolo 1=bloccato, 0=sbloccato */
+
 response notifica; /* Messaggio di notifica */
 
 /* --- Strutture ------------------------------------------------------------------- */
@@ -39,6 +41,9 @@ int comanda(int);
 /* Riceve aggiornamenti delle comande dal server */
 int uptcom(int);
 
+/* Chiede il conto */
+int conto(int);
+
 /* --- Utility --------------------------------------------------------------------- */
 
 /* Compara 2 piatti, se hanno lo stesso codice allora sono uguali */
@@ -59,6 +64,7 @@ int printNotifica(void);
 #include "cmd/menu.c"
 #include "cmd/comanda.c"
 #include "cmd/uptcom.c"
+#include "cmd/conto.c"
 
 #include "utils.c"
 

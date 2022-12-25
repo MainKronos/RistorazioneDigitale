@@ -183,6 +183,8 @@ void* socketHandler(void* arg) {
 				if(td_menu(sd)) break;
 			}else if(strcmp(command, TD_COMANDA) == 0) {
 				if(td_comanda(sd)) break;
+			}else if(strcmp(command, TD_CONTO) == 0) {
+				if(td_conto(sd)) break;
 			}else if(strcmp(command, CL_FIND) == 0) {
 				if(cl_find(sd)) break;
 			}else if(strcmp(command, CL_BOOK) == 0) {

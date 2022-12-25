@@ -74,6 +74,11 @@ struct comanda_sv{
 	struct tavolo_sv* t; /* Puntatore al tavolo di provenienza della comanda */
 };
 
+/* Informazioni comanda da cercare, utilizzata solo per scopi di ricerca */
+struct comanda_to_search{
+	enum stato_com stato; /* Stato della comanda */
+	struct tavolo_sv* t; /* Puntatore al tavolo di provenienza della comanda */
+};
 
 /* --- Variabili Globali --------------------------------------------------------------- */
 
@@ -110,6 +115,9 @@ int td_menu(int);
 
 /* Receve la comanda dal TableDevice */
 int td_comanda(int);
+
+/* Riceve la richiesta di conto dal TableDevice */
+int td_conto(int);
 
 /* Invia le disponibilità dei tavoli al Client*/
 int cl_find(int);
@@ -175,6 +183,12 @@ int notificaTavolo(struct comanda_sv*);
 /* Confronta una comanda_sv con una comanda_lite */
 int cmpComandaLite(const struct comanda_lite*, const struct comanda_sv*);
 
+/* Confronta una comanda_sv con una comanda_to_search */
+int cmpComandaToSearch(const struct comanda_to_search*, const struct comanda_sv*);
+
+/* Confronta una comanda_sv con una comanda_to_search considerando lo stato diverso */
+int cmpComandaToSearchNotStato(const struct comanda_to_search* com_s, const struct comanda_sv* com_i);
+
 /* --- COMANDI ---------------------------------------------------------------------------------------------------- */
 
 #include "cmd/ping.c"
@@ -187,6 +201,7 @@ int cmpComandaLite(const struct comanda_lite*, const struct comanda_sv*);
 #include "cmd/kd_getcomlen.c"
 #include "cmd/kd_take.c"
 #include "cmd/kd_ready.c"
+#include "cmd/td_conto.c"
 
 /* --- FUNZIONI DI SUPPORTO --------------------------------------------------------------------------------------- */
 

@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
 	int sd; /* Descrittore Socket */
 	int sd_notify; /* Descrittore Socket per la notifica */
 	int ret; /* Valore di ritorno */
-	int lock; /* Blocco del tavolo */
+	
 	/* ----------------------------------------------------------------------------- */
 
 	/* Controllo comando*/
@@ -124,10 +124,10 @@ int main(int argc, char *argv[]){
 							if(menu(sd)) break;
 						}
 						else if(strcmp(command, "comanda") == 0){
-							comanda(sd);
+							if(comanda(sd)) break;
 						}
 						else if(strcmp(command, "conto") == 0){
-							/* conto(sd); */
+							if(conto(sd)) break;
 						}
 					}
 				}

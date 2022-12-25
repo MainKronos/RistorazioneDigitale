@@ -31,6 +31,9 @@ typedef uint32_t tavolo_id;
 /* Codice di sblocco del tavolo */
 typedef uint32_t unlock_code; 
 
+/* Prezzo del piatto */
+typedef int32_t valore;
+
 /* Funzione di comparazione; 
 il primo parametro è il puntatore all'elemento di riferimento,
 il secondo parametro è il puntatore all'i-esimo elemento da confrontare,
@@ -55,7 +58,7 @@ struct tavolo{
 struct piatto{
 	type code; /* Codice del piatto */
 	char nome[255]; /* Nome del piatto */
-	uint32_t prezzo; /* Prezzo del piatto */
+	valore prezzo; /* Prezzo del piatto */
 };
 
 /* Informazioni sulla prenotazione */
@@ -101,6 +104,9 @@ const cmd TD_MENU = "menu";
 
 /* Richiesta comanda dal TableDevice */
 const cmd TD_COMANDA = "comanda";
+
+/* Richiesta conto */
+const cmd TD_CONTO = "conto";
 
 /* Ricerca disponibilità prenotazione per il Client */
 const cmd CL_FIND = "find";

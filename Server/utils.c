@@ -277,3 +277,17 @@ int cmpComandaLite(const struct comanda_lite* com, const struct comanda_sv* com_
 
 	return 0;
 }
+
+int cmpComandaToSearch(const struct comanda_to_search* com_s, const struct comanda_sv* com_i){
+	if(com_s->stato == com_i->stato && com_s->t->inf.id == com_i->t->inf.id)
+		return 1;
+	
+	return 0;
+}
+
+int cmpComandaToSearchNotStato(const struct comanda_to_search* com_s, const struct comanda_sv* com_i){
+	if(com_s->stato != com_i->stato && com_s->t->inf.id == com_i->t->inf.id)
+		return 1;
+	
+	return 0;
+}
