@@ -70,7 +70,7 @@ int main(int argc, char *argv[]){
 	/* --- Richesta identificativo del tavolo -------------------------------------- */
 
 	if(!connecttable(sd_notify)){ 
-		lock = 0; /* !ALERT: Blocco il tavolo, mettere 0 in fase di test, altrimenti 1 */
+		lock = 1; /* !ALERT: Blocco il tavolo, mettere 0 in fase di test, altrimenti 1 */
 
 	/* --- Ciclo principale -------------------------------------------------------- */
 		while(1){
@@ -134,15 +134,15 @@ int main(int argc, char *argv[]){
 
 				fflush(stdin);
 			} else if(FD_ISSET(sd_notify, &read_fds)){
+				cmd command; /* Comando ricevuto */
+
+				/* Leggo il comando */
+				if((ret = read(sd_notify, command, sizeof(cmd))) <= 0){
+					if(ret < 0) perror("Errore in fase di lettura");
+					break;
+				}
+				
 				if(!lock){ /* Se il tavolo non è bloccato */
-
-					cmd command; /* Comando ricevuto */
-
-					/* Leggo il comando */
-					if((ret = read(sd_notify, command, sizeof(cmd))) <= 0){
-						if(ret < 0) perror("Errore in fase di lettura");
-						break;
-					}
 
 					if(strcmp(command, SV_UPTCOM) == 0){
 						if(uptcom(sd_notify)) break;

@@ -134,6 +134,12 @@ int kd_take(int);
 /* Riceve dal KitchenDevice che una comanda è pronta */
 int kd_ready(int);
 
+/* Controlla se è possibile spegnere il server */
+int sv_stop(void);
+
+/* Mostra comande */
+int sv_stat(void);
+
 /* --- Funzioni di supporto ------------------- */
 
 /* Inizializza il menù */
@@ -171,7 +177,7 @@ int cmpPrenotazioneSospeso(const int*, const struct pre_sosp*);
 /* Confronta se il sd è uguale di una cucina */
 int cmpCucina(const int*, const struct cucina_sv*);
 
-/* Controlla se una comanda è in attesa */
+/* Controlla se una comanda ha uno stato */
 int cmpComandaStato(const enum stato_com*, const struct comanda_sv*);
 
 /* Notifica tutte le cucine che è avvenuta una variazione nel numero di comande in attesa */
@@ -202,6 +208,8 @@ int cmpComandaToSearchNotStato(const struct comanda_to_search* com_s, const stru
 #include "cmd/kd_take.c"
 #include "cmd/kd_ready.c"
 #include "cmd/td_conto.c"
+#include "cmd/sv_stop.c"
+#include "cmd/sv_stat.c"
 
 /* --- FUNZIONI DI SUPPORTO --------------------------------------------------------------------------------------- */
 

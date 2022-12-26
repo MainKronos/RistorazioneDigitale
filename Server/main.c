@@ -134,11 +134,13 @@ int main(int argc, char *argv[]){
 
 			/* Leggo il comando */
 			scanf("%s", command);
-
+			getchar();
 			if(strcmp(command, SV_STOP) == 0){
-
 				/* Spegnimento server */
-				break;
+				if(sv_stop()) break;
+			}else if(strcmp(command, SV_STAT) == 0){
+				/* Stato server */
+				sv_stat();
 			}
 		}		
 	}

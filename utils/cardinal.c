@@ -129,6 +129,9 @@ const cmd KD_READY = "ready";
 /* Invio aggiornamento comanda dal server al tavolo */
 const cmd SV_UPTCOM = "uptcom";
 
+/* Mostra le comande */
+const cmd SV_STAT = "stat";
+
 /* --- UTILS ------------------------------------------------------------------------- */
 
 /* Aggiunge un elemento alla lista,
