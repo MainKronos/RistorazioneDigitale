@@ -2,4 +2,6 @@ server
 cli
 td
 *.o
+*.html
+*.pdf
 kd

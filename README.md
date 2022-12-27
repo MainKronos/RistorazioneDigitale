@@ -1,7 +1,13 @@
 <style>
+
+	.block{
+		page-break-inside: avoid;
+	}
+
 	.grid {
 		width: 100%;
 		display: flex;
+		page-break-inside: avoid;
 	}
 
 	.mermaid {
@@ -23,11 +29,15 @@ Ogni traferimento di dati tra i dispositivi avviene utilizzando il _binary proto
 
 Ogni volta che c'è uno scambio di informazioni tra dispositivo e server, o viceversa, viene prima inviato un comando che definisce l'operazione da svolgere e poi i rispettivi dati da trasmettere.
 
+<hr>
+
 ## Client
 Il **Client** serve a inviare le prenotazioni al **Server**.
 I comandi che vengono inviati al server sono:
 - [`find`](#comando-find) per cercare i tavoli disponibili
 - [`book`](#comando-book) per prenotare un tavolo
+
+<div class="block">
 
 ### Comando find
 
@@ -45,11 +55,9 @@ sequenceDiagram
 	participant sv as Server
 
 	cl->>sv: comando find
-	Note over sv,cl: Invio dati prenotazione
 	cl->>sv: cognome
 	cl->>sv: numero persone
 	cl->>sv: data e ora prenotazione
-	Note over sv,cl: Ricezione tavoli
 	sv->>cl: numero tavoli trovati
 	loop Per ogni tavolo
 		sv->>cl: ID tavolo
@@ -70,6 +78,9 @@ sequenceDiagram
 | 8 | `tavolo::ubicazione` | 255 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando book
 
@@ -95,6 +106,9 @@ sequenceDiagram
 | 2 | `len` | 4 |
 
 </div>
+</div>
+
+<hr>
 
 ## TableDevice
 
@@ -105,6 +119,8 @@ I comandi che vengono inviati al server sono:
 - [`menu`](#comando-menu) per ottenere il menu
 - [`comanda`](#comando-comanda) per inviare la comanda
 - [`conto`](#comando-conto) per richiedere il conto
+
+<div class="block">
 
 ### Comando getid
 
@@ -130,6 +146,9 @@ sequenceDiagram
 | 2 | `tavolo_id` | 4 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando unlock
 
@@ -161,6 +180,9 @@ sequenceDiagram
 | 5 | `response` | 2048 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando menu
 
@@ -195,6 +217,9 @@ sequenceDiagram
 | 5 | `piatto::prezzo` | 4 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando comanda
 
@@ -230,13 +255,16 @@ sequenceDiagram
 | 2 | `tavolo_id` | 4 |
 | 3 | `num_com` | 2 |
 | 4 | `len` | 4 |
-| 5 | `piatto::code` | 3 |
+| 5 | `type` | 3 |
 | 6 | `len` | 4 |
 | 7 | `cmd` | 20 |
 | 8 | `len` | 4 |
 | 9 | `response` | 2048 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando conto
 
@@ -272,6 +300,9 @@ sequenceDiagram
 | 6 | `valore` | 4 |
 
 </div>
+</div>
+
+<hr>
 
 ## KitchenDevice
 
@@ -280,6 +311,8 @@ I comandi che vengono inviati al server sono:
 - [`getcomlen`](#comando-getcomlen) per ottenere il numero di comande in attesa
 - [`take`](#comando-take) per prendere in carico una comanda in attesa da più tempo
 - [`ready`](#comando-ready) per segnalare che la comanda è pronta
+
+<div class="block">
 
 ### Comando getcomlen
 
@@ -305,6 +338,9 @@ sequenceDiagram
 | 2 | `len` | 4 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando take
 
@@ -349,6 +385,9 @@ sequenceDiagram
 | 10 | `response` | 2048 |
 
 </div>
+</div>
+
+<div class="block">
 
 ### Comando ready
 
@@ -380,4 +419,5 @@ sequenceDiagram
 | 4 | `cmd` | 20 |
 | 5 | `response` | 2048 |
 
+</div>
 </div>
