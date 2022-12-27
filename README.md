@@ -358,12 +358,12 @@ sequenceDiagram
 	participant td as TableDevice
 
 	kd->>sv: comando take
-	kd->>sv: ID tavolo
-	kd->>sv: numero comanda
-	kd->>sv: numero piatti
+	sv->>kd: ID tavolo
+	sv->>kd: numero comanda
+	sv->>kd: numero piatti
 	loop Per ogni piatto
-		kd->>sv: codice piatto
-		kd->>sv: quantità
+		sv->>kd: codice piatto
+		sv->>kd: quantità
 	end
 	sv->>kd: comando numcom
 	sv->>kd: variazione comande
