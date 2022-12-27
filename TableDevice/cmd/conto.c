@@ -59,6 +59,7 @@ int conto(int sd){
 
 		printf("Totale: %d\n", v_tot);
 		lock = 1; /* Blocco il tavolo */
+		NC = 0; /* Resetto il contatore delle comande */
 	}
 
 	printf("\nPremi INVIO per continuare...");

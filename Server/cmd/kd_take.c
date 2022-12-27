@@ -36,7 +36,7 @@ int kd_take(int sd){
 
 		/* Invio piatti e quantità */
 		for(i=0; i<com->nlen; i++){
-			send(sd, com->p[i], sizeof(type), 0);
+			send(sd, com->p[i]->code, sizeof(type), 0);
 			q = htonl(com->q[i]);
 			send(sd, &q, sizeof(len), 0);
 		}
