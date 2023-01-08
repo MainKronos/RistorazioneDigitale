@@ -31,6 +31,12 @@ Ogni volta che c'è uno scambio di informazioni tra dispositivo e server, o vice
 
 <hr>
 
+## Server
+
+Il **Server** è il componente centrale del sistema. Gestisce le connessioni dei dispositivi e le comande. Il sever è multi-threaded e gestisce le connessioni dei dispositivi in modo asincrono. Ogni thread gestisce un socket, relativo ad un dispositivo, e rimane in ascolto per ricevere comandi fino alla chiusura del socket o allo spegniento del server.
+
+<hr>
+
 ## Client
 Il **Client** serve a inviare le prenotazioni al **Server**.
 I comandi che vengono inviati al server sono:
@@ -84,7 +90,7 @@ sequenceDiagram
 
 ### Comando book
 
-Invia una richiesta di prenotazione di un tavolo corrispondente all'opzione scelta.
+Invia una richiesta di prenotazione di un tavolo corrispondente all'opzione scelta. Il server risponde con un messaggio di conferma, contenente tutte le informazioni della prenotazione (nome, data, ora, tavolo e codice di sblocco), o di errore.
 
 <div class="grid">
 
@@ -98,12 +104,14 @@ sequenceDiagram
 
 	cl->>sv: comando book
 	cl->>sv: opzione scelta
+	sv->>cl: messaggio
 ```
 
 | Op. | Tipo | N Byte |
 |:---:|:-----|:-------|
 | 1 | `cmd` | 20 |
 | 2 | `len` | 4 |
+| 3 | `response` | 2048 |
 
 </div>
 </div>
@@ -119,12 +127,14 @@ I comandi che vengono inviati al server sono:
 - [`menu`](#comando-menu) per ottenere il menu
 - [`comanda`](#comando-comanda) per inviare la comanda
 - [`conto`](#comando-conto) per richiedere il conto
+  
+> NOTA: Il TableDevice utilizza 2 socket per la comunicazione con il Server, uno per lo scambio di informazioni e uno per la ricezione delle notifiche; Il secondo viene memorizzato dal server insieme all'accettazione del comando `getid`. Le notifiche che riceve il TableDevice riguardano il cambio di stato delle comande inviate.
 
 <div class="block">
 
 ### Comando getid
 
-Richiede al server l'ID del tavolo.
+Richiede al server l'ID del tavolo. Gli ID sono assegnati dal server in modo dinamico e non possono essere duplicati.
 
 <div class="grid">
 
@@ -223,7 +233,7 @@ sequenceDiagram
 
 ### Comando comanda
 
-Invia al server la comanda.
+Invia al server la comanda contenente il tipo di piatto e la quantità.
 
 <div class="grid">
 
@@ -268,7 +278,7 @@ sequenceDiagram
 
 ### Comando conto
 
-Richiede al server il conto.
+Richiede al server il conto. Il conto può essere richiesto se c'è stata almeno una comanda inviata e se tutte le comande sono state servite
 
 <div class="grid">
 
@@ -312,6 +322,8 @@ I comandi che vengono inviati al server sono:
 - [`take`](#comando-take) per prendere in carico una comanda in attesa da più tempo
 - [`ready`](#comando-ready) per segnalare che la comanda è pronta
 
+> NOTA: Il KitchenDevice utilizza 2 socket per la comunicazione con il Server, uno per lo scambio di informazioni e uno per la ricezione delle notifiche; il secondo viene memorizzato dal server insieme all'accettazione del comando `getcomlen`.
+
 <div class="block">
 
 ### Comando getcomlen
@@ -344,7 +356,10 @@ sequenceDiagram
 
 ### Comando take
 
-Prende in carico una comanda in attesa da più tempo.
+Prende in carico una comanda in attesa da più tempo. 
+
+> NOTA: Le operazioni 7 e 8 sono eseguite verso ogni KitchenDevice connesso al server e non solo verso il KitchenDevice che ha inviato il comando `take`. \
+> Mentre le operazioni 9 e 10 sono eseguite solo verso il TableDevice di riferimento della comanda.
 
 <div class="grid">
 
@@ -391,7 +406,7 @@ sequenceDiagram
 
 ### Comando ready
 
-Segnala al server che la comanda è pronta.
+Segnala al server che la comanda è pronta. Il server poi provvederà a notificare il tavolo relativo alla comanda.
 
 <div class="grid">
 

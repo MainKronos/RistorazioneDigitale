@@ -1,3 +1,11 @@
+# ************************************************************************************
+# NOTA: di seguito, tutti i device sono lanciati passando una un numero di porta
+# a linea di comando, per generalità. Se si decide che un device si comporta da client
+# non è necessario recuperare la porta nel codice, né effettuare la bind().
+# Supporre che i dispositivi contattino il server sulla porta 4242, inserendola
+# staticamente nel codice sorgente.
+# ************************************************************************************
+
 # 1. COMPILAZIONE
 # Il comando 'make' necessita del makefile, che deve essere
 # creato come descritto nella guida sulla pagina Elearn

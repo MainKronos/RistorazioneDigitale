@@ -28,6 +28,8 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 	/* --- Setup ------------------------------------------------------------------- */
+
+	UNUSED(argv);
 	
 	FD_ZERO(&master);
 	FD_ZERO(&read_fds);
@@ -42,7 +44,7 @@ int main(int argc, char *argv[]){
 	memset(&sv_addr, 0, sizeof(sv_addr));
 	sv_addr.sin_family = AF_INET;
 	inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
-	sv_addr.sin_port = htons(atoi(argv[1]));
+	sv_addr.sin_port = htons(4242);
 
 	/* Connessione al server */
 	if(
@@ -112,6 +114,7 @@ int main(int argc, char *argv[]){
 				}
 
 				fflush(stdin);
+			/* Controllo se è arrivata una notifica */
 			} else if(FD_ISSET(sd_notify, &read_fds)){
 				cmd command; /* Comando ricevuto */
 

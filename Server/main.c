@@ -34,6 +34,8 @@ int main(int argc, char *argv[]){
 	if(argc != 2) {
 		fprintf(stderr, "Usage: /server <porta>\n");
 		exit(-1);
+	}else if(atoi(argv[1]) != 4242){
+		fprintf(stderr, "Porta non valida, utilizzare 4242\n");
 	}
 
 	/* --- Setup ------------------------------------------------------------------- */
@@ -46,6 +48,7 @@ int main(int argc, char *argv[]){
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 
 	/* Creazione indirizzo */
+	memset(&sv_addr, 0, sizeof(sv_addr));
 	sv_addr.sin_family = AF_INET;
 	inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
 	sv_addr.sin_port = htons(atoi(argv[1]));

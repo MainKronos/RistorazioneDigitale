@@ -5,6 +5,8 @@
 #ifndef my_header
 #define my_header
 
+#define UNUSED(x) (void)(x) /* Macro per evitare warning */
+
 #include <stdint.h>
 #include <pthread.h>
 

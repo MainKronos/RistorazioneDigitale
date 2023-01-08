@@ -3,7 +3,7 @@
 CC := gcc
 CFLAGS := -Iutils -fdiagnostics-color=always -lpthread -pthread -std=c89 -pedantic -Wall -Wextra -Werror -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition -ggdb
 
-all: Client Server TableDevice KitchenDevice
+all: clean Client Server TableDevice KitchenDevice
 
 Client: Client/main.o 
 	cc $(CFLAGS) -g $< -o cli
